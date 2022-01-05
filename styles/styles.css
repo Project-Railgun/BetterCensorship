@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Crete+Round&family=Dosis:wght@300&display=swap');
+
+html {
+    height: 100%;
+}
+body, .pageContainer, .contentContainer, .flexContainer {
+    height: inherit;
+}
+
+.content {
+    font-family: 'Dosis', sans-serif;
+    font-size: 200%;
+}
+.uploadText, .title, .censorText, .decensorText, #decensorButton {
+    font-family: 'Crete Round', serif;
+    text-align: center;
+    font-size: 300%;
+}
+
+.dataFlex {
+    margin-bottom: 8vh;
+}
+
+.navContainer {
+    margin-bottom: 15vh;
+    margin-top: auto;
+}
+
+.icon-eye, .icon-eye-blocked {
+    font-size: 25em;
+}
+.divider {
+    margin: 0 100px;
+    width: 1px;
+    border: 1px solid dimgrey;
+}
+.icon-folder-upload {
+    font-size: 4em;
+}
+
+.no-close .ui-dialog-titlebar-close {
+    display: none;
+}
+
+.ui-dialog {
+    background-color: white;
+    padding: 40px;
+}
+.ui-dialog-titlebar {
+    font-weight: bold;
+    color: red;
+}
+.ui-dialog-buttonset {
+    text-align: right;
+}
+.keyContainer {
+    padding-top: 25px;
+    font-family: 'Crete Round', serif;
+    font-size: 150%;
+}
+#canvasContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+label {
+    margin-bottom: 0;
+}
+#decensorButton {
+    padding-top: 15px;
+}
