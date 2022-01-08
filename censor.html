@@ -251,7 +251,6 @@
 
             download = function () {
                 let downloadImageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data;
-                console.log(downloadImageData.data);
                 let originalData = originalImageData.data;
                 let chunkSize = 100;
                 let chunkItems;
@@ -282,13 +281,13 @@
                 }
                 payload.chunkCount = payload.items.length;
                 let payloadString = JSON.stringify(payload);
-                console.log("Payload string length = " + payloadString.length)
+
                 let compressedPayload = LZString.compress(payloadString);
-                console.log("Compressed Payload String Length = " + compressedPayload.length);
+
                 let CryptoJSCompatibleFormat = CryptoJS.enc.Utf16.parse(compressedPayload);
                 let passphrase = $("#key").val();
                 let payloadChunk = CryptoJS.AES.encrypt(CryptoJSCompatibleFormat, passphrase).toString();
-                console.log("CryptoJS Encrypted String Length = " + payloadChunk.length);
+
                 canvas.toBlob(blob => {
                     let reader = new FileReader();
                     reader.onload = function () {
@@ -511,7 +510,7 @@
             buf += chunk.type;
             buf += chunk.data;
             buf += itos(chunk.crc, 4);
-            // console.log("w", chunk.size, chunk.type, ToUInt32(chunk.crc));
+
             pf += buf;
         }
         return pf;
