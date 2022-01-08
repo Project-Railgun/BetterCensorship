@@ -9,9 +9,9 @@ body, .pageContainer, .contentContainer, .flexContainer {
 
 .content {
     font-family: 'Dosis', sans-serif;
-    font-size: 200%;
+    font-size: 1.5em;
 }
-.uploadText, .title, .censorText, .decensorText, #decensorButton {
+.uploadText, .title, .censorText, .decensorText, #decensorButton, #downloadButton {
     font-family: 'Crete Round', serif;
     text-align: center;
     font-size: 300%;
@@ -27,7 +27,7 @@ body, .pageContainer, .contentContainer, .flexContainer {
 }
 
 .icon-eye, .icon-eye-blocked {
-    font-size: 25em;
+    font-size: 12.5em;
 }
 .divider {
     margin: 0 100px;
@@ -66,6 +66,70 @@ body, .pageContainer, .contentContainer, .flexContainer {
 label {
     margin-bottom: 0;
 }
-#decensorButton {
+#decensorButton, #downloadButton {
     padding-top: 15px;
+}
+.stateControlsContainer {
+    margin: 30px;
+    font-family: 'Crete Round', serif;
+}
+
+.stateControlsContainer .divider {
+    border: 1px solid lightgray;
+}
+
+.toolbox img {
+    max-width: 40px;
+    max-height: 40px;
+}
+
+#addToolButton {
+    width: 30px;
+    height: 30px;
+}
+
+.toolbox li {
+    padding: 5px;
+}
+
+.toolbox ul {
+    padding-left: 0;
+    border: 1px solid lightgray;
+    border-radius: 5px;
+    list-style-type: none;
+}
+.activeTool {
+    background-color: lightgray;
+}
+#toolScalarRange, #toolScalarNumber {
+    width: 20vw;
+}
+
+.canvas {
+    position: relative;
+    max-width: 80vw;
+    margin: 0 auto;
+}
+.right {
+    position: absolute;
+    left: 100%;
+    padding-left: 10px;
+}
+.left {
+    position: absolute;
+    min-width: 20vw;
+    right: 100%;
+    padding-right: 40px;
+}
+h3 {
+    font-family: 'Crete Round', serif;
+}
+
+label {
+    font-family: 'Crete Round', serif;
+}
+
+.wall-of-text p {
+    font-family: 'Dosis', sans-serif;
+    font-weight: bold;
 }

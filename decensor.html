@@ -10,7 +10,9 @@
     <link rel="stylesheet" href="styles/styles.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js" integrity="sha256-/H4YS+7aYb9kJ5OKhFYPUjSJdrtV6AeyJOtTkw6X72o=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha512-E8QSvWZ0eCLGk4km3hxSsNmGWbLtSCSUcewDQPQWZF6pEU8GlT8a5fF32wOl1i8ftdMhssTrF/OhyGWwonTcXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.min.js" integrity="sha512-4b1zfeOuJCy8B/suCMGNcEkMcQkQ+/jQ6HlJIaYVGvg2ZydPvdp7GY0CuRVbNpSxNVFqwTAmls2ftKSkDI9vtA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="libraries/lz-string/lz-string.min.js"></script>
     <script src="libraries/FileSaver-js/FileSaver.js"></script>
 
     <title>BetterCensorship</title>
@@ -89,9 +91,12 @@
                 $("#decensorUpload").attr('style', 'display: none !important');
                 canvas.height = this.height;
                 canvas.width = this.width;
-                // TODO IMPLEMENT CSS SCALING
                 if (this.height > (document.documentElement.clientHeight/1.5)) {
                     let scalar = this.height/(document.documentElement.clientHeight/1.5);
+                    $("#drawingBoard").css("height", `${this.height/scalar}px`)
+                    $("#drawingBoard").css("width", `${this.width/scalar}px`)
+                } else if (this.width > (document.documentElement.clientWidth/1.2)) {
+                    let scalar = this.width/(document.documentElement.clientWidth/1.2);
                     $("#drawingBoard").css("height", `${this.height/scalar}px`)
                     $("#drawingBoard").css("width", `${this.width/scalar}px`)
                 }
@@ -113,9 +118,10 @@
                                 throw new Error("Version Mismatch");
                             }
                             try {
-                                let key = $("#key").text();
+                                let key = $("#key").val();
                                 payload = payload.data.split("Payload\u0000").join("")
-                                decrypted = CryptoJS.AES.decrypt(payload, key).toString(CryptoJS.enc.Utf8)
+                                let decryptedCompressed = CryptoJS.AES.decrypt(payload, key).toString(CryptoJS.enc.Utf16);
+                                decrypted = LZString.decompress(decryptedCompressed);
                                 try {
                                     let decryptedPayload = JSON.parse(decrypted);
                                     let canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height)
@@ -156,54 +162,6 @@
             }
             img.src = _URL.createObjectURL(file);
 
-        }
-    })
-
-    $("#imageDecode").change(function (e) {
-        //TODO ADD ERROR CHECKING: Mainly, that it is an image, that it is one of our images, that the password is correct, that the data payload is correct.
-        let file, canvas, ctx, img, imagedata, key;
-        if ((file = this.files[0])) {
-            img = new Image();
-            canvas = $("#drawingBoard")[0];
-            ctx = canvas.getContext('2d');
-
-            img.onload = function () {
-                canvas.height = this.height;
-                canvas.width = this.width;
-                ctx.drawImage(img, 0, 0);
-                let reader = new FileReader();
-                reader.onload = function (){
-                    let view = new Uint8Array(reader.result);
-                    let list = metadata.splitChunk(Uint8ToString(view));
-                    console.log(list);
-                    let iend = list.pop();
-                    let payload = list.pop();
-                    let encryption = list.pop();
-                    if (encryption[-1] == "s") {
-                        console.log("Encrypted: True")
-                    } else {
-                        console.log("Encrypted: False")
-                        key = "";
-                    }
-                    payload = payload.data.split("Payload\u0000").join("")
-                    let decrypted = CryptoJS.AES.decrypt(payload, key).toString(CryptoJS.enc.Utf8)
-                    let decryptedPayload = JSON.parse(decrypted)
-                    let canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-                    decryptedPayload.items.forEach(chunk=>{
-                        let clampedArray = Object.keys(chunk.array).map(key=>chunk.array[key])
-                        console.log(clampedArray)
-                        for (let i = 0; i<100; i++) {
-                            canvasData.data[(chunk.chunkIndex+i)] = chunk.array[i];
-                        }
-                        // Array.prototype.splice.apply(canvasData.data, [chunk.chunkIndex, clampedArray.length].concat(clampedArray))
-                    })
-                    ctx.putImageData(canvasData, 0, 0)
-
-                }
-                reader.readAsArrayBuffer(file);
-            }
-
-            img.src = _URL.createObjectURL(file);
         }
     })
 </script>
