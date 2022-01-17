@@ -5,6 +5,8 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <meta name="msapplication-TileColor" content="#da532c">
+    <meta property="og:title" content="BetterCensorship" />
+    <meta property="og:description" content="Censor and decensor images quickly." />
     <link rel="stylesheet" href="styles/icomoon.css">
     <link rel="stylesheet" href="https://necolas.github.io/normalize.css/8.0.1/normalize.css">
     <link rel="stylesheet" href="styles/styles.css">
@@ -14,11 +16,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/aes.min.js" integrity="sha512-4b1zfeOuJCy8B/suCMGNcEkMcQkQ+/jQ6HlJIaYVGvg2ZydPvdp7GY0CuRVbNpSxNVFqwTAmls2ftKSkDI9vtA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="libraries/lz-string/lz-string.min.js"></script>
     <script src="libraries/FileSaver-js/FileSaver.js"></script>
-
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
     <title>BetterCensorship</title>
 </head>
 <body>
 <div class="pageContainer d-flex align-items-center justify-content-center">
+    <div class="navLeft">
+        <div class="navigationContainer ">
+            <a href="/index.html">Home</a> /
+            <a href="/censor.html">Censor</a> /
+            <a href="/decensor.html">Decensor</a>
+        </div>
+    </div>
+    <div class="versionRight">
+        <div class="versionContainer">
+            <span id="versionString">BetterCensorship vX.X.X</span><br>
+            <span><a href="https://www.patreon.com/BetterRepack">Patreon</a> / <a
+                    href="https://subscribestar.adult/betterrepack">SubscribeStar</a>
+            </span>
+        </div>
+    </div>
     <div id="censorUpload" class="d-flex flex-column align-items-center" onclick="loadPage()">
         <span class="icon-folder-upload"></span>
         <span class="uploadText">Open File</span>
@@ -34,6 +54,7 @@
                 <p>
                     Pixelate by pressing or holding down your left mouse button.<br><br>
                     Scaling can be changed with Shift + Scrollwheel, or the slider/input below<br><br>
+                    You can undo and redo your changes by pressing the buttons below<br><br>
                     You can add a password to your hidden data, to secure it from prying eyes.<br><br>
                     And then, simply press download at the end!
                 </p>
@@ -82,21 +103,26 @@
         </span>
         <canvas id="customImageContainer" style="display: none">
         </canvas>
-        <span id="downloadButton" onclick="download();">
+        <span id="downloadButton" onclick="downloadButton();">
             Download!
         </span>
     </div>
 </div>
-
 <div class="error" id="notAnImage" title="Error">File is not an Image. Press OK to reload the page</div>
+<div class="error" id="resTooLarge" title="Error">Image is too large to be processed (limit is 4000x3200). Press OK to reload the page</div>
 <div class="error" id="fileTooBig" title="Error">File is too big to be processed properly(50MB Limit). Press OK to reload the page</div>
+<div class="status" id="loading" title="Loading">Please wait while the image processes. Processing time depends upon image size and edited content</div>
+
 
 <script>
 
     let _URL = window.URL || window.webkitURL;
+    let globalVersion = "BetterCensorship v0.0.1"
+    $("#versionString").text(globalVersion);
     let originalImageData, pixelate = true, undoStateContainer = [], redoStateContainer = [], ctx,
         boardCurrentStateHolder, globalIsDrawing = false, imageScalar = 1, toolScalar = 50,
-        undoState, redoState, xOffset, yOffset, download, toolbox = [], activeTool = 0, toolCtx, toolCanvas;
+        undoState, redoState, xOffset, yOffset, download, toolbox = [], activeTool = 0, toolCtx, toolCanvas,
+        downloadButton;
 
     toolbox.push({
         name: "Pixelate",
@@ -115,7 +141,8 @@
     let toolInput = $("<input type=file>")
     let notAnImageDialog = $("#notAnImage");
     let fileTooBig = $("#fileTooBig");
-
+    let resTooLarge = $("#resTooLarge");
+    let loadingDialog = $("#loading");
 
     let dialogOptions = {
         autoOpen: false,
@@ -132,8 +159,15 @@
         ]
     }
 
+    loadingDialog.dialog({
+        autoOpen: false,
+        modal: true,
+        dialogClass: "no-close",
+        minWidth: 250,
+    })
     notAnImageDialog.dialog(dialogOptions);
     fileTooBig.dialog(dialogOptions);
+    resTooLarge.dialog(dialogOptions);
 
     let loadPage = function () {
         fileInput.click();
@@ -220,6 +254,11 @@
                 return
             }
             let img = new Image();
+            if ((img.height * img.width > (4000*3200))) {
+                resTooLarge.dialog("open");
+                $("body").css('background-color', "grey");
+                return
+            }
             canvas = $("#drawingBoard")[0];
             ctx = canvas.getContext("2d");
             img.onload = function () {
@@ -249,10 +288,17 @@
             }
             img.src = _URL.createObjectURL(file);
 
+            downloadButton = function () {
+                loadingDialog.dialog("open");
+                setTimeout(()=>{
+                    download();
+                }, 1)
+            }
+
             download = function () {
                 let downloadImageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data;
                 let originalData = originalImageData.data;
-                let chunkSize = 100;
+                let chunkSize = 250;
                 let chunkItems;
                 let payload = {
                     chunkSize: chunkSize,
@@ -267,10 +313,12 @@
                     }
                     for (let j = 0; j<chunkItems; j++) {
                         if (originalData[i+j] != downloadImageData[i+j]) {
+                            let intArray = new Uint8Array(originalData.slice(i, i+chunkSize));
+                            let packedArray = pack(intArray);
                             payload.items.push(
                                 {
                                     chunkIndex: i,
-                                    array: originalData.slice(i, i+chunkSize)
+                                    arrayString: packedArray
                                 }
                             )
                             break;
@@ -294,7 +342,7 @@
                         let view = new Uint8Array(reader.result);
                         let list = metadata.splitChunk(Uint8ToString(view));
                         let iend = list.pop();
-                        let signature = metadata.createChunk("tEXt", "Version"+String.fromCharCode(0x00)+"BetterCensor v.0.0.1");
+                        let signature = metadata.createChunk("tEXt", "Version"+String.fromCharCode(0x00)+globalVersion);
                         let payload = metadata.createChunk("tEXt", "Payload"+String.fromCharCode(0x00)+payloadChunk);
                         let encryption = metadata.createChunk("tEXt", "Encrypted"+String.fromCharCode(0x00)+((passphrase.length!=0 ? "Yes": "No")))
                         list.push(signature);
@@ -305,6 +353,7 @@
                         let b = convertBinaryStringToUint8Array(newPNG);
                         let blob = new Blob([b.buffer], {type: "image/png"});
                         saveAs(blob, "censored.png");
+                        loadingDialog.dialog("close");
                     }
                     reader.readAsArrayBuffer(blob);
                 })
@@ -380,7 +429,7 @@
                 }
             })
 
-            $("#drawingBoard").bind('mousewheel', function (e) {
+            $("#drawingBoard").bind('wheel', function (e) {
                 if (!(e.shiftKey)) {
                     return;
                 }
@@ -440,6 +489,14 @@
 
 <script>
     //Foreign Code
+
+    function pack(bytes) {
+        var chars = [];
+        for(var i = 0, n = bytes.length; i < n;) {
+            chars.push(((bytes[i++] & 0xff) << 8) | (bytes[i++] & 0xff));
+        }
+        return String.fromCharCode.apply(null, chars);
+    }
 
     let metadata = {}
     metadata.PNG_SIG = String.fromCharCode(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);

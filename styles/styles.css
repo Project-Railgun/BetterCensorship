@@ -110,16 +110,33 @@ label {
     max-width: 80vw;
     margin: 0 auto;
 }
-.right {
-    position: absolute;
-    left: 100%;
-    padding-left: 10px;
+.pageContainer {
+    position: relative;
+    margin: 0 auto;
 }
 .left {
     position: absolute;
     min-width: 20vw;
     right: 100%;
     padding-right: 40px;
+}
+.right {
+    position: absolute;
+    left: 100%;
+    padding-left: 10px;
+}
+.navLeft {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding-right: 10px;
+}
+
+.versionRight {
+    position: absolute;
+    bottom: 0%;
+    right: 0%;
+    padding-left: 10px;
 }
 h3 {
     font-family: 'Crete Round', serif;
@@ -132,4 +149,29 @@ label {
 .wall-of-text p {
     font-family: 'Dosis', sans-serif;
     font-weight: bold;
+}
+
+.versionContainer {
+    text-align: center;
+    padding: 10px;
+    font-family: 'Crete Round', serif;
+    color: rgba(0, 0, 0, 0.5);
+}
+.versionContainer a {
+    color: rgba(0, 123, 255, 0.5);
+}
+.versionContainer a:hover {
+    color: #007bff
+}
+
+.navigationContainer {
+    font-family: 'Crete Round', serif;
+
+    margin: 10px;
+
+}
+.navigationContainer a {
+    padding: 10px;
+    color: black;
+
 }
