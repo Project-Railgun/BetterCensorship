@@ -6,6 +6,7 @@
           integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <meta name="msapplication-TileColor" content="#da532c">
     <meta property="og:title" content="BetterCensorship" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <meta property="og:description" content="Censor and decensor images quickly." />
     <link rel="stylesheet" href="styles/icomoon.css">
     <link rel="stylesheet" href="https://necolas.github.io/normalize.css/8.0.1/normalize.css">
@@ -69,5 +70,9 @@
         </div>
     </div>
 </div>
+<script>
+    let globalVersion = "BetterCensorship v0.0.1"
+    $("#versionString").text(globalVersion);
+</script>
 </body>
 </html>

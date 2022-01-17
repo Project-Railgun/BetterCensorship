@@ -68,6 +68,9 @@
 
 
 <script>
+    let globalVersion = "BetterCensorship v0.0.1"
+    $("#versionString").text(globalVersion);
+
     let _URL = window.URL || window.webkitURL;
     let display = $("#canvasContainer").css("display");
     $("#canvasContainer").css("display", "none");

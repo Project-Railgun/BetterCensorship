@@ -203,6 +203,9 @@
                 $(`<li class='activeTool' id="tool${toolIndex}" onclick="switchTool(${toolIndex})">
                         <img title="${toolbox[toolIndex].name}" src="${toolbox[toolIndex].src}">
                     </li>`).insertBefore($("#addTool"));
+                $("#toolScalarRange").attr("max", "4");
+                $("#toolScalarRange").attr("min", "0.1");
+                $("#toolScalarRange").attr("step", "0.1");
 
             }
             img.onerror = function () {
@@ -220,6 +223,9 @@
             $(`#tool${activeTool}`).removeClass("activeTool");
             activeTool = toolIndex;
             $(`#tool${activeTool}`).addClass("activeTool");
+            $("#toolScalarRange").attr("max", "250");
+            $("#toolScalarRange").attr("min", "1");
+            $("#toolScalarRange").attr("step", "1");
             return;
         }
 
@@ -236,6 +242,9 @@
             activeTool = toolIndex;
             toolScalar = 1;
             $(`#tool${activeTool}`).addClass("activeTool");
+            $("#toolScalarRange").attr("max", "4");
+            $("#toolScalarRange").attr("min", "0.1");
+            $("#toolScalarRange").attr("step", "0.1");
         }
 
         img.onerror = function () {
@@ -451,18 +460,18 @@
                         toolScalar = toolScalar - 0.1;
                     }
                 }
-
-                $("#toolScalarNumber").val(toolScalar);
-                $("#toolScalarRange").val(toolScalar);
+                let rounded = Math.round(toolScalar * 100) / 100
+                $("#toolScalarNumber").val(rounded);
+                $("#toolScalarRange").val(rounded);
 
                 $("#drawingBoard")[0].dispatchEvent(new Event('mousemove'));
             })
 
             $("#toolScalarRange").change(function (){
-                toolScalar= parseInt($("#toolScalarRange").val());
+                toolScalar= parseFloat($("#toolScalarRange").val());
             })
             $("#toolScalarNumber").change(function (){
-                toolScalar = parseInt($("#toolScalarNumber").val());
+                toolScalar = parseFloat($("#toolScalarNumber").val());
             })
 
             undoState = function (undoStateContainer, redoStateContainer, ctx) {
