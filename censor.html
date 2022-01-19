@@ -108,7 +108,7 @@
         </span>
     </div>
 </div>
-<div class="error" id="notAnImage" title="Error">File is not an Image. Press OK to reload the page</div>
+<div class="error" id="notAnImage" title="Error">Image handler crashed. Please double check that the file is actually an image no greater than 4000x3000 and 50MB in size. Press OK to reload the page</div>
 <div class="error" id="resTooLarge" title="Error">Image is too large to be processed (limit is 4000x3200). Press OK to reload the page</div>
 <div class="error" id="fileTooBig" title="Error">File is too big to be processed properly(50MB Limit). Press OK to reload the page</div>
 <div class="status" id="loading" title="Loading">Please wait while the image processes. Processing time depends upon image size and edited content</div>
@@ -201,7 +201,7 @@
                 activeTool = toolIndex
                 toolScalar = 1;
                 $(`<li class='activeTool' id="tool${toolIndex}" onclick="switchTool(${toolIndex})">
-                        <img title="${toolbox[toolIndex].name}" src="${toolbox[toolIndex].src}">
+                        <img title="${toolbox[toolIndex].name}" src="${toolbox[toolIndex].src}" alt="${toolbox[toolIndex].name}">
                     </li>`).insertBefore($("#addTool"));
                 $("#toolScalarRange").attr("max", "4");
                 $("#toolScalarRange").attr("min", "0.1");
@@ -210,7 +210,6 @@
             }
             img.onerror = function () {
                 alert("File not an image");
-                return;
             }
             img.src = _URL.createObjectURL(file);
         }
@@ -293,7 +292,7 @@
             img.onerror = function () {
                 notAnImageDialog.dialog("open");
                 $("body").css('background-color', "grey");
-                return;
+
             }
             img.src = _URL.createObjectURL(file);
 
@@ -353,7 +352,7 @@
                         let iend = list.pop();
                         let signature = metadata.createChunk("tEXt", "Version"+String.fromCharCode(0x00)+globalVersion);
                         let payload = metadata.createChunk("tEXt", "Payload"+String.fromCharCode(0x00)+payloadChunk);
-                        let encryption = metadata.createChunk("tEXt", "Encrypted"+String.fromCharCode(0x00)+((passphrase.length!=0 ? "Yes": "No")))
+                        let encryption = metadata.createChunk("tEXt", "Encrypted"+String.fromCharCode(0x00)+((passphrase.length!==0 ? "Yes": "No")))
                         list.push(signature);
                         list.push(encryption);
                         list.push(payload);
@@ -511,7 +510,7 @@
     metadata.PNG_SIG = String.fromCharCode(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
 
     function convertBinaryStringToUint8Array(bStr) {
-        var i, len = bStr.length, u8_array = new Uint8Array(len);
+        var len = bStr.length, u8_array = new Uint8Array(len);
         for (var i = 0; i < len; i++) {
             u8_array[i] = bStr.charCodeAt(i);
         }
