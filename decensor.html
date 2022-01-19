@@ -29,7 +29,8 @@
         <div class="navigationContainer ">
             <a href="/index.html">Home</a> /
             <a href="/censor.html">Censor</a> /
-            <a href="/decensor.html">Decensor</a>
+            <a href="/decensor.html">Decensor</a> /
+            <a href="/faq.html">FAQ</a>
         </div>
     </div>
     <div class="versionRight">
@@ -114,7 +115,7 @@
         fileInput.click();
         return false;
     }
-    fileInput.change(function (e) {
+    fileInput.change(function () {
         let file;
         if ((file = this.files[0])) {
             let img = new Image();

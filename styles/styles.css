@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Crete+Round&family=Dosis:wght@300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Crete+Round&family=Dosis:wght@300;400;500&display=swap');
 
 html {
     height: 100%;
@@ -134,8 +134,8 @@ label {
 
 .versionRight {
     position: absolute;
-    bottom: 0%;
-    right: 0%;
+    bottom: 0;
+    right: 0;
     padding-left: 10px;
 }
 h3 {
@@ -174,4 +174,39 @@ label {
     padding: 10px;
     color: black;
 
+}
+
+.FAQHeading {
+    padding-top: 130px;
+    font-size: 3em;
+    font-family: 'Crete Round', serif;
+}
+
+.faqHR {
+    background-color: rgba(0, 0, 0, 0.4);
+    width: 80vw;
+}
+
+.faqContainer {
+    max-width: 90vw;
+    padding: 40px 0;
+}
+
+.faqItem {
+    padding-bottom: 20px;
+}
+
+.faqItemHeading {
+    font-family: 'Crete Round', serif;
+    font-size: 1.3em;
+}
+.faqItemHeading:before {
+    content: "Q: ";
+}
+
+.faqItemDescription {
+    font-family: 'Dosis', sans-serif;
+    font-weight: 400;
+    font-size: 1.1em;
+    padding: 5px 15px;
 }
