@@ -11,7 +11,7 @@ body, .pageContainer, .contentContainer, .flexContainer {
     font-family: 'Dosis', sans-serif;
     font-size: 1.5em;
 }
-.uploadText, .title, .censorText, .decensorText, #decensorButton, #downloadButton {
+.uploadText, .title, .censorText, .decensorText, #decensorButton {
     font-family: 'Crete Round', serif;
     text-align: center;
     font-size: 300%;
@@ -30,7 +30,7 @@ body, .pageContainer, .contentContainer, .flexContainer {
     font-size: 12.5em;
 }
 .divider {
-    margin: 0 100px;
+    margin: 0 20px;
     width: 1px;
     border: 1px solid dimgrey;
 }
@@ -56,8 +56,12 @@ body, .pageContainer, .contentContainer, .flexContainer {
 .keyContainer {
     padding-top: 25px;
     font-family: 'Crete Round', serif;
-    font-size: 150%;
 }
+
+.keyContainer label {
+    font-size: 1.5em;
+}
+
 #canvasContainer {
     display: flex;
     flex-direction: column;
@@ -66,12 +70,14 @@ body, .pageContainer, .contentContainer, .flexContainer {
 label {
     margin-bottom: 0;
 }
-#decensorButton, #downloadButton {
+#decensorButton {
     padding-top: 15px;
 }
 .stateControlsContainer {
-    margin: 30px;
+    margin-top: 25px;
+    margin-bottom: 15px;
     font-family: 'Crete Round', serif;
+    font-size: 1.5em;
 }
 
 .stateControlsContainer .divider {
@@ -101,17 +107,32 @@ label {
 .activeTool {
     background-color: lightgray;
 }
-#toolScalarRange, #toolScalarNumber {
-    width: 20vw;
+
+.scalarHolder {
+    align-self: stretch;
+}
+
+.slideContainer {
+    align-self: stretch;
+}
+
+.rangeHolder {
+    flex-grow: 1;
+    margin-right: 5px;
+}
+
+#toolScalarRange {
+    width: 100%;
+}
+
+.pageContainer {
+    position: relative;
+    margin: 0 auto;
 }
 
 .canvas {
     position: relative;
     max-width: 80vw;
-    margin: 0 auto;
-}
-.pageContainer {
-    position: relative;
     margin: 0 auto;
 }
 .left {
@@ -147,6 +168,7 @@ label {
 }
 
 .wall-of-text p {
+    padding-top: 15px;
     font-family: 'Dosis', sans-serif;
     font-weight: bold;
 }
@@ -209,4 +231,67 @@ label {
     font-weight: 400;
     font-size: 1.1em;
     padding: 5px 15px;
+}
+
+.ui-dialog-title {
+    font-family: 'Crete Round', serif;
+    color: black;
+    font-size: 1.3em;
+}
+
+
+
+.ui-dialog {
+    border: 3px solid rgba(0, 0, 0, 0.6);
+    border-radius: 3px;
+    padding: 0;
+}
+
+.ui-dialog-titlebar {
+    padding: 30px 40px 20px;
+    text-align: center;
+}
+
+
+.ui-button {
+    font-family: 'Dosis', sans-serif;
+    font-weight: 500;
+    background-color: white;
+}
+.ui-dialog-content {
+    padding: 0 40px;
+}
+
+.systemMessage .ui-dialog-content {
+    font-family: 'Dosis', sans-serif;
+    padding-bottom: 40px;
+    text-align: center;
+    font-weight: 500;
+}
+
+.errorDialog .ui-dialog-title {
+    color: red;
+}
+
+.errorDialog .ui-dialog-content {
+    padding-bottom: 20px;
+}
+
+.ui-dialog p {
+    padding: 0;
+}
+.ui-dialog-buttonpane {
+    padding-bottom: 20px;
+    padding-right: 20px;
+}
+
+#downloadButton {
+    font-family: 'Crete Round', serif;
+    text-align: center;
+    font-size: 2em;
+    padding-bottom: 15px;
+}
+input[type=number] {
+    width: 6ch;
+    max-width: 100%;
 }

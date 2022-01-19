@@ -48,74 +48,89 @@
 
         <div class="canvas d-flex align-items-center">
 
-            <div class="left wall-of-text">
-                <h3>
-                    How do I use this tool?
-                </h3>
+            <canvas id="drawingBoard"></canvas>
+
+            <canvas id="customImageContainer" style="display: none">
+            </canvas>
+        </div>
+        <div class="helperHolder" id="helperHolder" title="How do I use this tool?">
+            <div class="wall-of-text">
                 <p>
                     Pixelate by pressing or holding down your left mouse button.<br><br>
                     Scaling can be changed with Shift + Scrollwheel, or the slider/input below<br><br>
                     You can undo and redo your changes by pressing the buttons below<br><br>
                     You can add a password to your hidden data, to secure it from prying eyes.<br><br>
-                    And then, simply press download at the end!
+                    And then, simply press download at the end!<br><br>
+                    Note: All dialog boxes can be moved by holding the title.
                 </p>
             </div>
-            <canvas id="drawingBoard"></canvas>
-            <div class="toolboxHolder right">
-                <div class="toolbox">
-<!--                    This holds all the tools the user will add, as well as an add tool button-->
-                    <ul class="d-flex flex-column align-items-center">
-                        <li class="activeTool" id="tool0" onclick="switchTool(0)"><img src="assets/pixelate.png" alt="Pxl" title="Pixelate"></li>
-                        <li class="" id="tool1" onclick="switchTool(1)"><img src="assets/nipcensor.png" alt="smile" title="Smiley Face"></li>
-                        <li id="addTool" onclick="addTool()"><img id="addToolButton" src="assets/plus.svg" alt="add" title="Add more images!"></li>
-                    </ul>
+        </div>
+
+
+        <div class="toolboxFloatingDialog" id="toolboxFloatingDialog" title="Toolbox">
+            <div class="toolboxContainer d-flex flex-column align-items-center">
+
+                <div class="toolboxHolder">
+                    <div class="toolbox">
+                        <!--                    This holds all the tools the user will add, as well as an add tool button-->
+                        <ul class="d-flex align-items-center">
+                            <li class="activeTool" id="tool0" onclick="switchTool(0)"><img src="assets/pixelate.png" alt="Pxl" title="Pixelate"></li>
+                            <li class="" id="tool1" onclick="switchTool(1)"><img src="assets/nipcensor.png" alt="smile" title="Smiley Face"></li>
+                            <li id="addTool" onclick="addTool()"><img id="addToolButton" src="assets/plus.svg" alt="add" title="Add more images!"></li>
+                        </ul>
+                    </div>
                 </div>
-            </div>
-        </div>
+                <div class="scalarHolder d-flex flex-column align-items-center">
+                    <div class="slideContainer d-flex">
+                        <div class="rangeHolder d-flex flex-column justify-content-center">
+                            <input type="range" min="1" max="250" value="6" class="slider" id="toolScalarRange" oninput="toolScalarNumber.value = toolScalarRange.value">
+                        </div>
+                        <input type="number" id="toolScalarNumber" min="1" max="500" size="4" oninput="toolScalarRange.value = toolScalarNumber.value">
+                    </div>
+                    <label for="toolScalarRange">Scale the tool!</label>
+                </div>
 
-        <div class="stateControlsContainer d-flex">
-            <div class="undoButton" onclick="undoState(undoStateContainer, redoStateContainer, ctx)">
-                <span id="undoButton">
-                    Undo
+                <div class="keyContainer d-flex flex-column align-items-center">
+                    <label for="key">Add a password:&nbsp</label>
+                    <input type="text" id="key" name="key">
+                    <span id="keyHelpText">
+                    (Empty field valid option)
+                    </span>
+                </div>
+
+
+                <div class="stateControlsContainer d-flex">
+                    <div class="undoButton" onclick="undoState(undoStateContainer, redoStateContainer, ctx)">
+                        <span id="undoButton">
+                            Undo
+                        </span>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="redoButton" onclick="redoState(redoStateContainer, undoStateContainer, ctx)">
+                        <span id="redoButton">
+                            Redo
+                        </span>
+                    </div>
+                </div>
+
+
+                <span id="downloadButton" onclick="downloadButton();">
+                    Download!
                 </span>
             </div>
-            <div class="divider"></div>
-            <div class="redoButton" onclick="redoState(redoStateContainer, undoStateContainer, ctx)">
-                <span id="redoButton">
-                    Redo
-                </span>
-            </div>
         </div>
-
-        <div class="scalarHolder d-flex flex-column align-items-center">
-            <div class="slideContainer">
-                <input type="range" min="1" max="250" value="6" class="slider" id="toolScalarRange" oninput="toolScalarNumber.value = toolScalarRange.value">
-            </div>
-            <label for="toolScalarRange">Scale the tool!</label>
-            <input type="number" id="toolScalarNumber" min="1" max="500" oninput="toolScalarRange.value = toolScalarNumber.value">
-        </div>
-
-        <div class="keyContainer">
-            <label for="key">Add a password:&nbsp</label>
-            <input type="text" id="key" name="key">
-        </div>
-        <span id="keyHelpText">
-                (Empty field valid option)
-        </span>
-        <canvas id="customImageContainer" style="display: none">
-        </canvas>
-        <span id="downloadButton" onclick="downloadButton();">
-            Download!
-        </span>
     </div>
 </div>
 <div class="error" id="notAnImage" title="Error">Image handler crashed. Please double check that the file is actually an image no greater than 4000x3000 and 50MB in size. Press OK to reload the page</div>
 <div class="error" id="resTooLarge" title="Error">Image is too large to be processed (limit is 4000x3200). Press OK to reload the page</div>
-<div class="error" id="fileTooBig" title="Error">File is too big to be processed properly(50MB Limit). Press OK to reload the page</div>
+<div class="error" id="fileTooBig" title="Error">File is too big to be processed properly (50MB Limit). Press OK to reload the page</div>
 <div class="status" id="loading" title="Loading">Please wait while the image processes. Processing time depends upon image size and edited content</div>
 
 
 <script>
+
+    const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
+    const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
 
     let _URL = window.URL || window.webkitURL;
     let globalVersion = "BetterCensorship v0.0.1"
@@ -144,11 +159,13 @@
     let fileTooBig = $("#fileTooBig");
     let resTooLarge = $("#resTooLarge");
     let loadingDialog = $("#loading");
+    let toolboxDialog = $("#toolboxFloatingDialog");
+    let helpDialog = $("#helperHolder");
 
     let dialogOptions = {
         autoOpen: false,
         modal: true,
-        dialogClass: "no-close",
+        dialogClass: "systemMessage errorDialog no-close",
         minWidth: 250,
         buttons: [
             {
@@ -157,14 +174,49 @@
                     window.location.reload();
                 }
             }
-        ]
+        ],
+        position: {
+            my: "center",
+            at: "center",
+            of: window
+        }
     }
 
     loadingDialog.dialog({
         autoOpen: false,
         modal: true,
-        dialogClass: "no-close",
+        dialogClass: "systemMessage no-close",
         minWidth: 250,
+    })
+    toolboxDialog.dialog({
+        autoOpen: false,
+        modal: true,
+        dialogClass: "toolboxDialog no-close",
+        minWidth: 0.17*vw,
+        position: {
+            my: "right",
+            at: "right",
+            of: window
+        }
+    })
+    helpDialog.dialog({
+        autoOpen: false,
+        modal: true,
+        dialogClass: "helpDialog no-close",
+        minWidth: 250,
+        buttons: [
+            {
+                text: "Got it!",
+                click: function () {
+                    helpDialog.dialog("close");
+                }
+            }
+        ],
+        position: {
+            my: "left",
+            at: "left",
+            of: window
+        }
     })
     notAnImageDialog.dialog(dialogOptions);
     fileTooBig.dialog(dialogOptions);
@@ -275,12 +327,12 @@
                 $("#censorUpload").attr('style', 'display: none !important');
                 canvas.height = this.height;
                 canvas.width = this.width;
-                if (this.height > (document.documentElement.clientHeight/1.6)) {
-                    imageScalar = this.height/(document.documentElement.clientHeight/1.6);
+                if (this.height > (document.documentElement.clientHeight/1.1)) {
+                    imageScalar = this.height/(document.documentElement.clientHeight/1.1);
                     $("#drawingBoard").css("height", `${this.height/imageScalar}px`)
                     $("#drawingBoard").css("width", `${this.width/imageScalar}px`)
-                } else if (this.width > (document.documentElement.clientWidth/1.4)) {
-                    imageScalar = this.width/(document.documentElement.clientWidth/1.4);
+                } else if (this.width > (document.documentElement.clientWidth/1.1)) {
+                    imageScalar = this.width/(document.documentElement.clientWidth/1.1);
                     $("#drawingBoard").css("height", `${this.height/imageScalar}px`)
                     $("#drawingBoard").css("width", `${this.width/imageScalar}px`)
                 }
@@ -288,6 +340,8 @@
                 originalImageData = ctx.getImageData(0, 0, this.width, this.height);
                 undoStateContainer.push(originalImageData);
                 boardCurrentStateHolder = originalImageData;
+                toolboxDialog.dialog("open");
+                helpDialog.dialog("open");
 
             }
             img.onerror = function () {

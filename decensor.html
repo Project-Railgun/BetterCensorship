@@ -86,14 +86,14 @@
     loadingDialog.dialog({
         autoOpen: false,
         modal: true,
-        dialogClass: "no-close",
+        dialogClass: "systemMessage no-close",
         minWidth: 250,
     })
 
     let dialogOptions = {
         autoOpen: false,
         modal: true,
-        dialogClass: "no-close",
+        dialogClass: "systemMessage errorDialog no-close",
         minWidth: 250,
         buttons: [
             {
@@ -102,7 +102,12 @@
                     window.location.reload();
                 }
             }
-        ]
+        ],
+        position: {
+            my: "center",
+            at: "center",
+            of: window
+        }
     }
 
     notAnImageDialog.dialog(dialogOptions);
