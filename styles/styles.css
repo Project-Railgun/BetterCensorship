@@ -34,6 +34,13 @@ body, .pageContainer, .contentContainer, .flexContainer {
     width: 1px;
     border: 1px solid dimgrey;
 }
+
+.index-divider {
+    margin: 0 100px;
+    width: 1px;
+    border: 1px solid dimgrey;
+}
+
 .icon-folder-upload {
     font-size: 4em;
 }
