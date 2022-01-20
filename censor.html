@@ -145,7 +145,7 @@
     </div>
 </div>
 <div class="error" id="notAnImage" title="Error">Image handler crashed. Please double check that the file is actually an image no greater than 4000x3000 and 50MB in size. Press OK to reload the page</div>
-<div class="error" id="resTooLarge" title="Error">Image is too large to be processed (limit is 4000x3200). Press OK to reload the page</div>
+<div class="error" id="resTooLarge" title="Error">Image is too large (safe limit is 4000x3200). Usage not guaranteed. Tool may be unstable.</div>
 <div class="error" id="fileTooBig" title="Error">File is too big to be processed properly (50MB Limit). Press OK to reload the page</div>
 <div class="status" id="loading" title="Loading">Please wait while the image processes. Processing time depends upon image size and edited content</div>
 
@@ -257,8 +257,26 @@
     })
     notAnImageDialog.dialog(dialogOptions);
     fileTooBig.dialog(dialogOptions);
-    resTooLarge.dialog(dialogOptions);
-    toolboxDialog.dialog("open");
+    resTooLarge.dialog({
+        autoOpen: false,
+        modal: true,
+        dialogClass: "systemMessage errorDialog no-close",
+        minWidth: 250,
+        buttons: [
+            {
+                text: "Got it!",
+                click: function () {
+                    resTooLarge.dialog("close");
+                    $("body").css('background-color', "white");
+                }
+            }
+        ],
+        position: {
+            my: "center",
+            at: "center",
+            of: window
+        }
+    });
 
 
     let loadPage = function () {
@@ -359,11 +377,6 @@
             ctx = canvas.getContext("2d");
             img.onload = function () {
 
-                if ((img.height * img.width > (4000*3200))) {
-                    resTooLarge.dialog("open");
-                    $("body").css('background-color', "grey");
-                    return
-                }
 
                 $("#canvasContainer").css("display", display)
                 $("#censorUpload").attr('style', 'display: none !important');
@@ -385,6 +398,11 @@
                 $("#filenameInput").val(file.name.split(".")[0] + "_censored.png")
                 toolboxDialog.dialog("open");
                 helpDialog.dialog("open");
+
+                if ((img.height * img.width > (4000*3200))) {
+                    resTooLarge.dialog("open");
+                    $("body").css('background-color', "grey");
+                }
 
             }
             img.onerror = function () {
