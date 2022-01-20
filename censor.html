@@ -98,6 +98,10 @@
                     </span>
                 </div>
 
+                <div class="filenameModifyField d-flex">
+                    <label for="filenameInput">Filename:&nbsp; </label>
+                    <input type="text" id="filenameInput" name="filenameInput">
+                </div>
 
                 <div class="stateControlsContainer d-flex">
                     <div class="undoButton" onclick="undoState(undoStateContainer, redoStateContainer, ctx)">
@@ -136,7 +140,7 @@
     let globalVersion = "BetterCensorship v0.0.1"
     $("#versionString").text(globalVersion);
     let originalImageData, pixelate = true, undoStateContainer = [], redoStateContainer = [], ctx,
-        boardCurrentStateHolder, globalIsDrawing = false, imageScalar = 1, toolScalar = 50,
+        boardCurrentStateHolder, globalIsDrawing = false, imageScalar = 1, toolScalar = 10,
         undoState, redoState, xOffset, yOffset, download, toolbox = [], activeTool = 0, toolCtx, toolCanvas,
         downloadButton;
 
@@ -271,7 +275,7 @@
     let switchTool = function (toolIndex) {
         if (toolIndex === 0) {
             pixelate = true;
-            toolScalar = 50;
+            toolScalar = 10;
             $(`#tool${activeTool}`).removeClass("activeTool");
             activeTool = toolIndex;
             $(`#tool${activeTool}`).addClass("activeTool");
@@ -315,14 +319,17 @@
                 return
             }
             let img = new Image();
-            if ((img.height * img.width > (4000*3200))) {
-                resTooLarge.dialog("open");
-                $("body").css('background-color', "grey");
-                return
-            }
+
             canvas = $("#drawingBoard")[0];
             ctx = canvas.getContext("2d");
             img.onload = function () {
+
+                if ((img.height * img.width > (4000*3200))) {
+                    resTooLarge.dialog("open");
+                    $("body").css('background-color', "grey");
+                    return
+                }
+
                 $("#canvasContainer").css("display", display)
                 $("#censorUpload").attr('style', 'display: none !important');
                 canvas.height = this.height;
@@ -340,6 +347,7 @@
                 originalImageData = ctx.getImageData(0, 0, this.width, this.height);
                 undoStateContainer.push(originalImageData);
                 boardCurrentStateHolder = originalImageData;
+                $("#filenameInput").val(file.name.split(".")[0] + "_censored.png")
                 toolboxDialog.dialog("open");
                 helpDialog.dialog("open");
 
@@ -415,7 +423,8 @@
                         let newPNG = metadata.joinChunk(list);
                         let b = convertBinaryStringToUint8Array(newPNG);
                         let blob = new Blob([b.buffer], {type: "image/png"});
-                        saveAs(blob, "censored.png");
+                        let filename = $("#filenameInput").val();
+                        saveAs(blob, filename);
                         loadingDialog.dialog("close");
                     }
                     reader.readAsArrayBuffer(blob);
@@ -453,10 +462,14 @@
                 }
 
                 if (pixelate) {
-                    let x = (parseInt((offsetX*imageScalar)/toolScalar)*toolScalar);
-                    let y = (parseInt((offsetY*imageScalar)/toolScalar)*toolScalar);
+                    console.log(`Scalar set to ${toolScalar}.\n 1% of total pixelcount is ${(ctx.canvas.height*ctx.canvas.width)*0.01}\n
+                    Side length should be (at 1)${parseInt(Math.sqrt((ctx.canvas.height*ctx.canvas.width)*0.01))} \n
+                    and ${parseInt(Math.sqrt(((ctx.canvas.height*ctx.canvas.width)*0.01)*toolScalar))}`)
+                    let sideLength = parseInt(Math.sqrt(((ctx.canvas.height*ctx.canvas.width)*(0.0001*toolScalar))))
+                    let x = (parseInt((offsetX*imageScalar)/sideLength)*sideLength);
+                    let y = (parseInt((offsetY*imageScalar)/sideLength)*sideLength);
                     let rgba = [0, 0, 0, 0];
-                    let data = ctx.getImageData(x, y, toolScalar, toolScalar).data;
+                    let data = ctx.getImageData(x, y, sideLength, sideLength).data;
 
                     for (let i = 0; i<data.length; i+=4){
                         rgba[0] += data[i]
@@ -466,9 +479,9 @@
                     }
 
                     let alpha = rgba[3];
-                    rgba = rgba.map(i=>Math.floor(i/(toolScalar**2)));
+                    rgba = rgba.map(i=>Math.floor(i/(sideLength**2)));
                     ctx.fillStyle = `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${(alpha)/255})`;
-                    ctx.fillRect(x, y, toolScalar, toolScalar);
+                    ctx.fillRect(x, y, sideLength, sideLength);
                 } else {
 
                     let x = (offsetX*imageScalar);

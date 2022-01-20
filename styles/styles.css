@@ -66,7 +66,15 @@ body, .pageContainer, .contentContainer, .flexContainer {
 }
 
 .keyContainer label {
-    font-size: 1.5em;
+    font-size: 1.3em;
+}
+
+.filenameModifyField {
+    padding-top: 10px;
+}
+
+.filenameModifyField label{
+    font-size: 1.1em;
 }
 
 #canvasContainer {
@@ -103,6 +111,10 @@ label {
 
 .toolbox li {
     padding: 5px;
+}
+
+.toolbox li:hover {
+    background-color: aqua;
 }
 
 .toolbox ul {
@@ -301,4 +313,8 @@ label {
 input[type=number] {
     width: 6ch;
     max-width: 100%;
+}
+
+.undoButton:hover, .redoButton:hover, #downloadButton:hover {
+    color: aqua;
 }
