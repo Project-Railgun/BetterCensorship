@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--suppress ALL -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -145,7 +146,8 @@
     </div>
 </div>
 <div class="error" id="notAnImage" title="Error">Image handler crashed. Please double check that the file is actually an image no greater than 4000x3000 and 50MB in size. Press OK to reload the page</div>
-<div class="error" id="resTooLarge" title="Error">Image is too large (safe limit is 4000x3200). Usage not guaranteed. Tool may be unstable.</div>
+<div class="error" id="resTooLarge" title="Warning">Image is too large (safe limit is 4000x3200). Usage not guaranteed. Tool may be unstable.</div>
+<div class="error" id="imageContainsPayload" title="Warning">Image already contains a data payload. Proceeding further will remove any such data from the final censored image.</div>
 <div class="error" id="fileTooBig" title="Error">File is too big to be processed properly (50MB Limit). Press OK to reload the page</div>
 <div class="status" id="loading" title="Loading">Please wait while the image processes. Processing time depends upon image size and edited content</div>
 
@@ -186,6 +188,7 @@
     let toolboxDialog = $("#toolboxFloatingDialog");
     let helpDialog = $("#helperHolder");
     let zoomDialog = $("#zoom");
+    let imageContainsPayloadDialog = $("#imageContainsPayload");
 
     let dialogOptions = {
         autoOpen: false,
@@ -278,6 +281,26 @@
         }
     });
 
+    imageContainsPayloadDialog.dialog({
+        autoOpen: false,
+        modal: true,
+        dialogClass: "systemMessage errorDialog no-close",
+        minWidth: 250,
+        buttons: [
+            {
+                text: "Got it!",
+                click: function () {
+                    imageContainsPayloadDialog.dialog("close");
+                    $("body").css('background-color', "white");
+                }
+            }
+        ],
+        position: {
+            my: "center",
+            at: "center",
+            of: window
+        }
+    });
 
     let loadPage = function () {
         fileInput.click();
@@ -377,7 +400,6 @@
             ctx = canvas.getContext("2d");
             img.onload = function () {
 
-
                 $("#canvasContainer").css("display", display)
                 $("#censorUpload").attr('style', 'display: none !important');
                 canvas.height = this.height;
@@ -398,6 +420,23 @@
                 $("#filenameInput").val(file.name.split(".")[0] + "_censored.png")
                 toolboxDialog.dialog("open");
                 helpDialog.dialog("open");
+
+                let reader = new FileReader();
+
+                reader.onload = function (){
+                    try {
+                        let view = new Uint8Array(reader.result);
+                        let list = metadata.splitChunk(Uint8ToString(view));
+                        if (list[list.length-2].type !== "IDAT") {
+                            imageContainsPayloadDialog.dialog("open");
+                            $("body").css('background-color', "grey");
+                        }
+                    } catch {
+                        //Do absolutely nothing, ignore all errors and proceed to image drawing.
+                    }
+                }
+
+                reader.readAsArrayBuffer(file);
 
                 if ((img.height * img.width > (4000*3200))) {
                     resTooLarge.dialog("open");
@@ -764,6 +803,7 @@
     function itos(v, size) {
         var a = [];
         var t = size - 1;
+        // noinspection ES6ConvertVarToLetConst
         while (t >= 0) {
             var c = v & 0xFF;
             a[t--] = c;
