@@ -338,8 +338,8 @@ input[type=number] {
     color: aqua;
 }
 
-.zoomDialog .ui-dialog-titlebar {
-    padding: 20px;
+.zoomDialog .ui-dialog-titlebar, .textModalDialog .ui-dialog-titlebar {
+    padding: 10px;
 }
 
 .zoomDialog canvas {
@@ -348,7 +348,7 @@ input[type=number] {
     padding-left: 20px;
 }
 
-#zoomStatus.toggled {
+#zoomStatus.toggled, .addTextButton:hover, #addTextButton.toggled {
     color: aqua;
 }
 
@@ -361,4 +361,14 @@ input[type=number] {
     padding: 30px;
     background-color: rgba(0, 0, 0, 0.08);
     border-radius: 5px;
+}
+
+.textModalContent > div {
+    padding: 4px;
+}
+
+.addTextButton {
+    font-family: 'Crete Round', serif;
+    font-size: 1.3em;
+    padding-bottom: 10px;
 }
