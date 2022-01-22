@@ -41,9 +41,10 @@
             </span>
         </div>
     </div>
-    <div id="decensorUpload" class="d-flex flex-column align-items-center" onclick="loadPage()">
+    <div id="decensorUpload" class="d-flex flex-column align-items-center" onclick="loadPage()" ondrop="dropHandler(event)" ondragover="dragOverHandler(event)">
         <span class="icon-folder-upload"></span>
         <span class="uploadText">Open File</span>
+        <span class="fileDistinction">(For Decensoring)</span>
     </div>
     <div id="canvasContainer">
         <canvas id="drawingBoard"></canvas>
@@ -123,97 +124,118 @@
     fileInput.change(function () {
         let file;
         if ((file = this.files[0])) {
-            let img = new Image();
-            let canvas = $("#drawingBoard")[0];
-            let ctx = canvas.getContext("2d");
-            img.onload = function () {
-                $("#canvasContainer").css("display", display)
-                $("#decensorUpload").attr('style', 'display: none !important');
-                canvas.height = this.height;
-                canvas.width = this.width;
-                if (this.height > (document.documentElement.clientHeight/1.5)) {
-                    let scalar = this.height/(document.documentElement.clientHeight/1.5);
-                    $("#drawingBoard").css("height", `${this.height/scalar}px`)
-                    $("#drawingBoard").css("width", `${this.width/scalar}px`)
-                } else if (this.width > (document.documentElement.clientWidth/1.2)) {
-                    let scalar = this.width/(document.documentElement.clientWidth/1.2);
-                    $("#drawingBoard").css("height", `${this.height/scalar}px`)
-                    $("#drawingBoard").css("width", `${this.width/scalar}px`)
-                }
-                ctx.drawImage(img, 0, 0);
+            handleFile(file);
+        }
+    })
 
-                decensorButton = function () {
-                    loadingDialog.dialog("open");
-                    setTimeout(()=>{
-                        decensor();
-                    }, 1)
-                }
+    let dragOverHandler = function (e) {
+        //Shut up, browser.
+        e.preventDefault();
+    }
 
-                decensor = function () {
-                    let reader = new FileReader();
-                    let payload, view, list, iend, encryption, version, decrypted;
-                    reader.onload = function () {
+    let dropHandler = function (e) {
+        let file
+
+        //Seriously, shut up, browser.
+        e.preventDefault();
+
+        if ((file = e.dataTransfer.files[0])) {
+            handleFile(file);
+        }
+    }
+
+    let handleFile = function (file) {
+        let img = new Image();
+        let filename = file.name;
+        let canvas = $("#drawingBoard")[0];
+        let ctx = canvas.getContext("2d");
+        img.onload = function () {
+            $("#canvasContainer").css("display", display)
+            $("#decensorUpload").attr('style', 'display: none !important');
+            canvas.height = this.height;
+            canvas.width = this.width;
+            if (this.height > (document.documentElement.clientHeight/1.5)) {
+                let scalar = this.height/(document.documentElement.clientHeight/1.5);
+                $("#drawingBoard").css("height", `${this.height/scalar}px`)
+                $("#drawingBoard").css("width", `${this.width/scalar}px`)
+            } else if (this.width > (document.documentElement.clientWidth/1.2)) {
+                let scalar = this.width/(document.documentElement.clientWidth/1.2);
+                $("#drawingBoard").css("height", `${this.height/scalar}px`)
+                $("#drawingBoard").css("width", `${this.width/scalar}px`)
+            }
+            ctx.drawImage(img, 0, 0);
+
+            decensorButton = function () {
+                loadingDialog.dialog("open");
+                setTimeout(()=>{
+                    decensor();
+                }, 1)
+            }
+
+            decensor = function () {
+                let reader = new FileReader();
+                let payload, view, list, iend, encryption, version, decrypted;
+                reader.onload = function () {
+                    try {
+                        view = new Uint8Array(reader.result);
+                        list = metadata.splitChunk(Uint8ToString(view));
+                        iend = list.pop();
+                        payload = list.pop();
+                        encryption = list.pop();
+                        version = list.pop();
+                        //Might error at the strict type check
+                        if ((version.data.split("Version\u0000").join("")).split(" ")[0] !== "BetterCensorship") {
+                            throw new Error("Version Mismatch");
+                        }
                         try {
-                            view = new Uint8Array(reader.result);
-                            list = metadata.splitChunk(Uint8ToString(view));
-                            iend = list.pop();
-                            payload = list.pop();
-                            encryption = list.pop();
-                            version = list.pop();
-                            //Might error at the strict type check
-                            if ((version.data.split("Version\u0000").join("")).split(" ")[0] !== "BetterCensorship") {
-                                throw new Error("Version Mismatch");
-                            }
+                            let key = $("#key").val();
+                            payload = payload.data.split("Payload\u0000").join("")
+                            let decryptedCompressed = CryptoJS.AES.decrypt(payload, key).toString(CryptoJS.enc.Utf16);
+                            decrypted = LZString.decompress(decryptedCompressed);
                             try {
-                                let key = $("#key").val();
-                                payload = payload.data.split("Payload\u0000").join("")
-                                let decryptedCompressed = CryptoJS.AES.decrypt(payload, key).toString(CryptoJS.enc.Utf16);
-                                decrypted = LZString.decompress(decryptedCompressed);
-                                try {
-                                    let decryptedPayload = JSON.parse(decrypted);
-                                    let canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-                                    decryptedPayload.items.forEach(chunk=>{
-                                        for (let i = 0; i<decryptedPayload.chunkSize; i++) {
-                                            let array = unpack(chunk.arrayString);
-                                            canvasData.data[(chunk.chunkIndex+i)] = array[i];
-                                        }
-                                    })
-                                    ctx.putImageData(canvasData, 0, 0)
-                                    loadingDialog.dialog("close");
-                                    $("#decensorButton").text("Download!").click(function (){
+                                let decryptedPayload = JSON.parse(decrypted);
+                                let canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+                                decryptedPayload.items.forEach(chunk=>{
+                                    for (let i = 0; i<decryptedPayload.chunkSize; i++) {
+                                        let array = unpack(chunk.arrayString);
+                                        canvasData.data[(chunk.chunkIndex+i)] = array[i];
+                                    }
+                                })
+                                ctx.putImageData(canvasData, 0, 0)
+                                loadingDialog.dialog("close");
+                                $("#decensorButton").text("Download!").click(function (){
 
-                                        let link = document.createElement('a');
-                                        link.download = 'decensored.png';
-                                        link.href = canvas.toDataURL()
-                                        link.click();
-                                    })
-                                } catch {
-                                    dataPayloadCorruptedDialog.dialog("open");
-                                    $("body").css('background-color', "grey");
-                                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                                }
+                                    let link = document.createElement('a');
+                                    link.download = filename.split(".")[0] + '_decensored.png';
+                                    link.href = canvas.toDataURL()
+                                    link.click();
+                                })
                             } catch {
-                                passwordIncorrectDialog.dialog("open");
+                                dataPayloadCorruptedDialog.dialog("open");
                                 $("body").css('background-color', "grey");
                                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                             }
                         } catch {
-                            notBCImageDialog.dialog("open");
+                            passwordIncorrectDialog.dialog("open");
                             $("body").css('background-color', "grey");
                             ctx.clearRect(0, 0, canvas.width, canvas.height);
                         }
+                    } catch {
+                        notBCImageDialog.dialog("open");
+                        $("body").css('background-color', "grey");
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
                     }
-                    reader.readAsArrayBuffer(file);
                 }
+                reader.readAsArrayBuffer(file);
             }
-            img.onerror = function () {
-                notAnImageDialog.dialog("open");
-                $("body").css('background-color', "grey");
-            }
-            img.src = _URL.createObjectURL(file);
-
         }
-    })
+        img.onerror = function () {
+            notAnImageDialog.dialog("open");
+            $("body").css('background-color', "grey");
+        }
+        img.src = _URL.createObjectURL(file);
+
+    }
 </script>
 
 <script>
@@ -242,7 +264,7 @@
 
     metadata.isPNG = function (s) {
         var sig = s.substr(0, 8);
-        return (sig == metadata.PNG_SIG);
+        return (sig === metadata.PNG_SIG);
     };
 
     metadata.splitChunk= function (s) {
@@ -252,7 +274,7 @@
         s = s.substr(8); // chomp sig
         var chunklist = [];
         // read chunk list
-        while (s != '') {
+        while (s !== '') {
             var chunk = {};
             // read chunk size
             var size = stoi(s.substr(0, 4));

@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!--suppress ALL -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -41,9 +40,10 @@
             </span>
         </div>
     </div>
-    <div id="censorUpload" class="d-flex flex-column align-items-center" onclick="loadPage()">
+    <div id="censorUpload" class="d-flex flex-column align-items-center" onclick="loadPage()" ondrop="dropHandler(event)" ondragover="dragOverHandler(event)">
         <span class="icon-folder-upload"></span>
-        <span class="uploadText">Open File</span>
+        <span class="uploadText">Open File<br></span>
+        <span class="fileDistinction">(For Censoring)</span>
     </div>
     <div id="canvasContainer">
 
@@ -387,321 +387,341 @@
     }
 
     fileInput.change(function () {
-        let file, canvas;
+        let file;
         if ((file = this.files[0])) {
-            if (file.size >= 52428800) {
-                fileTooBig.dialog("open");
+            handleFile(file);
+        }
+    })
+
+    let dragOverHandler = function (e) {
+        //Shut up, browser.
+        e.preventDefault();
+    }
+
+    let dropHandler = function (e) {
+        let file
+
+        //Seriously, shut up, browser.
+        e.preventDefault();
+
+        if ((file = e.dataTransfer.files[0])) {
+            handleFile(file);
+        }
+    }
+
+    let handleFile = function (file) {
+        let canvas;
+        if (file.size >= 52428800) {
+            fileTooBig.dialog("open");
+            $("body").css('background-color', "grey");
+            return
+        }
+        let img = new Image();
+
+        canvas = $("#drawingBoard")[0];
+        ctx = canvas.getContext("2d");
+        img.onload = function () {
+
+            $("#canvasContainer").css("display", display)
+            $("#censorUpload").attr('style', 'display: none !important');
+            canvas.height = this.height;
+            canvas.width = this.width;
+            if (this.height > (document.documentElement.clientHeight/1.1)) {
+                imageScalar = this.height/(document.documentElement.clientHeight/1.1);
+                $("#drawingBoard").css("height", `${this.height/imageScalar}px`)
+                $("#drawingBoard").css("width", `${this.width/imageScalar}px`)
+            } else if (this.width > (document.documentElement.clientWidth/1.1)) {
+                imageScalar = this.width/(document.documentElement.clientWidth/1.1);
+                $("#drawingBoard").css("height", `${this.height/imageScalar}px`)
+                $("#drawingBoard").css("width", `${this.width/imageScalar}px`)
+            }
+            ctx.drawImage(img, 0, 0);
+            originalImageData = ctx.getImageData(0, 0, this.width, this.height);
+            undoStateContainer.push(originalImageData);
+            boardCurrentStateHolder = originalImageData;
+            $("#filenameInput").val(file.name.split(".")[0] + "_censored.png")
+            toolboxDialog.dialog("open");
+            helpDialog.dialog("open");
+
+            let reader = new FileReader();
+
+            reader.onload = function (){
+                try {
+                    let view = new Uint8Array(reader.result);
+                    let list = metadata.splitChunk(Uint8ToString(view));
+                    if (list[list.length-2].type !== "IDAT") {
+                        imageContainsPayloadDialog.dialog("open");
+                        $("body").css('background-color', "grey");
+                    }
+                } catch {
+                    //Do absolutely nothing, ignore all errors and proceed to image drawing.
+                }
+            }
+
+            reader.readAsArrayBuffer(file);
+
+            if ((img.height * img.width > (4000*3200))) {
+                resTooLarge.dialog("open");
                 $("body").css('background-color', "grey");
-                return
-            }
-            let img = new Image();
-
-            canvas = $("#drawingBoard")[0];
-            ctx = canvas.getContext("2d");
-            img.onload = function () {
-
-                $("#canvasContainer").css("display", display)
-                $("#censorUpload").attr('style', 'display: none !important');
-                canvas.height = this.height;
-                canvas.width = this.width;
-                if (this.height > (document.documentElement.clientHeight/1.1)) {
-                    imageScalar = this.height/(document.documentElement.clientHeight/1.1);
-                    $("#drawingBoard").css("height", `${this.height/imageScalar}px`)
-                    $("#drawingBoard").css("width", `${this.width/imageScalar}px`)
-                } else if (this.width > (document.documentElement.clientWidth/1.1)) {
-                    imageScalar = this.width/(document.documentElement.clientWidth/1.1);
-                    $("#drawingBoard").css("height", `${this.height/imageScalar}px`)
-                    $("#drawingBoard").css("width", `${this.width/imageScalar}px`)
-                }
-                ctx.drawImage(img, 0, 0);
-                originalImageData = ctx.getImageData(0, 0, this.width, this.height);
-                undoStateContainer.push(originalImageData);
-                boardCurrentStateHolder = originalImageData;
-                $("#filenameInput").val(file.name.split(".")[0] + "_censored.png")
-                toolboxDialog.dialog("open");
-                helpDialog.dialog("open");
-
-                let reader = new FileReader();
-
-                reader.onload = function (){
-                    try {
-                        let view = new Uint8Array(reader.result);
-                        let list = metadata.splitChunk(Uint8ToString(view));
-                        if (list[list.length-2].type !== "IDAT") {
-                            imageContainsPayloadDialog.dialog("open");
-                            $("body").css('background-color', "grey");
-                        }
-                    } catch {
-                        //Do absolutely nothing, ignore all errors and proceed to image drawing.
-                    }
-                }
-
-                reader.readAsArrayBuffer(file);
-
-                if ((img.height * img.width > (4000*3200))) {
-                    resTooLarge.dialog("open");
-                    $("body").css('background-color', "grey");
-                }
-
-            }
-            img.onerror = function () {
-                notAnImageDialog.dialog("open");
-                $("body").css('background-color', "grey");
-
-            }
-            img.src = _URL.createObjectURL(file);
-
-            downloadButton = function () {
-                loadingDialog.dialog("open");
-                setTimeout(()=>{
-                    download();
-                }, 1)
-            }
-
-            download = function () {
-                let downloadImageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data;
-                let originalData = originalImageData.data;
-                let chunkSize = 250;
-                let chunkItems;
-                let payload = {
-                    chunkSize: chunkSize,
-                    chunkCount: 0,
-                    items:[]
-                }
-                for (let i = 0; i<=originalData.length; i+=chunkSize) {
-                    if (i+chunkSize>originalData.length) {
-                        chunkItems = originalData.length - i
-                    } else {
-                        chunkItems = chunkSize;
-                    }
-                    for (let j = 0; j<chunkItems; j++) {
-                        if (originalData[i+j] !== downloadImageData[i+j]) {
-                            let intArray = new Uint8Array(originalData.slice(i, i+chunkSize));
-                            let packedArray = pack(intArray);
-                            payload.items.push(
-                                {
-                                    chunkIndex: i,
-                                    arrayString: packedArray
-                                }
-                            )
-                            break;
-                        }
-                    }
-                    // Loop Over all 100 items
-                    // If difference in any pixel, copy the 100 chunk into metadata, then break out back into earlier loop. Do for all array items.
-                }
-                payload.chunkCount = payload.items.length;
-                let payloadString = JSON.stringify(payload);
-
-                let compressedPayload = LZString.compress(payloadString);
-
-                let CryptoJSCompatibleFormat = CryptoJS.enc.Utf16.parse(compressedPayload);
-                let passphrase = $("#key").val();
-                let payloadChunk = CryptoJS.AES.encrypt(CryptoJSCompatibleFormat, passphrase).toString();
-
-                canvas.toBlob(blob => {
-                    let reader = new FileReader();
-                    reader.onload = function () {
-                        let view = new Uint8Array(reader.result);
-                        let list = metadata.splitChunk(Uint8ToString(view));
-                        let iend = list.pop();
-                        let signature = metadata.createChunk("tEXt", "Version"+String.fromCharCode(0x00)+globalVersion);
-                        let payload = metadata.createChunk("tEXt", "Payload"+String.fromCharCode(0x00)+payloadChunk);
-                        let encryption = metadata.createChunk("tEXt", "Encrypted"+String.fromCharCode(0x00)+((passphrase.length!==0 ? "Yes": "No")))
-                        list.push(signature);
-                        list.push(encryption);
-                        list.push(payload);
-                        list.push(iend);
-                        let newPNG = metadata.joinChunk(list);
-                        let b = convertBinaryStringToUint8Array(newPNG);
-                        let blob = new Blob([b.buffer], {type: "image/png"});
-                        let filename = $("#filenameInput").val();
-                        saveAs(blob, filename);
-                        loadingDialog.dialog("close");
-                    }
-                    reader.readAsArrayBuffer(blob);
-                })
-            }
-
-            $("#drawingBoard").mousedown(function () {
-                boardCurrentStateHolder = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                globalIsDrawing = true;
-            })
-
-            $("body").mouseup(function () {
-                if (globalIsDrawing) {
-                    undoStateContainer.push(boardCurrentStateHolder);
-                    globalIsDrawing = false;
-                }
-            })
-
-
-
-            $("#drawingBoard").mousemove(function (e){
-
-                let offsetX, offsetY;
-
-                if (!globalIsDrawing) {
-                    ctx.putImageData(boardCurrentStateHolder, 0, 0);
-                }
-
-                if (e.offsetX && e.offsetY) {
-                    offsetX = e.offsetX;
-                    offsetY = e.offsetY;
-                    xOffset = offsetX;
-                    yOffset = offsetY;
-                } else {
-                    offsetX = xOffset;
-                    offsetY = yOffset;
-                }
-
-                if (pixelate) {
-                    let sideLength = parseInt(Math.sqrt(((ctx.canvas.height*ctx.canvas.width)*(0.0001*toolScalar))))
-                    let x = (parseInt((offsetX*imageScalar)/sideLength)*sideLength);
-                    let y = (parseInt((offsetY*imageScalar)/sideLength)*sideLength);
-                    let rgba = [0, 0, 0, 0];
-                    let data = ctx.getImageData(x, y, sideLength, sideLength).data;
-
-                    for (let i = 0; i<data.length; i+=4){
-                        rgba[0] += data[i]
-                        rgba[1] += data[i+1]
-                        rgba[2] += data[i+2]
-                        rgba[3] += data[i+3]
-                    }
-
-                    let alpha = rgba[3];
-                    rgba = rgba.map(i=>Math.floor(i/(sideLength**2)));
-                    ctx.fillStyle = `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${(alpha)/255})`;
-                    ctx.fillRect(x, y, sideLength, sideLength);
-                } else {
-
-                    let x = (offsetX*imageScalar);
-                    let y = (offsetY*imageScalar);
-                    let iconWidth = toolCanvas.width;
-                    let iconHeight = toolCanvas.height;
-                    if (toolScalar === 0) {
-                        toolScalar = -0.1
-                    }
-                    ctx.drawImage(toolCanvas, x-((iconWidth*toolScalar)/2), y-((iconHeight*toolScalar)/2), iconWidth*toolScalar, iconHeight*toolScalar)
-                }
-
-                if (zoomState) {
-                    let x = (offsetX*imageScalar);
-                    let y = (offsetY*imageScalar)
-                    let scalar = $("#zoomNumber").val();
-
-                    zoomLens(ctx.getImageData(x-(300/scalar/2), y-(300/scalar/2), x+(300/scalar/2), y+(300/scalar/2)), 300/scalar, scalar);
-                }
-                if (globalIsDrawing) {
-                    boardCurrentStateHolder = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                }
-
-            })
-
-            let zoomLens = function (canvasData, sideLength, scalar) {
-                zoomDialog.dialog("open");
-                let zoomHolderCanvas = $("#zoomContainer")[0];
-                let zoomHolderCtx = zoomHolderCanvas.getContext("2d");
-                zoomHolderCanvas.height = sideLength;
-                zoomHolderCanvas.width = sideLength;
-                zoomHolderCtx.putImageData(canvasData, 0, 0);
-
-
-                let zoomImageCanvas = $("#zoomImageContainer")[0];
-                let zoomImageCtx = zoomImageCanvas.getContext("2d");
-                zoomImageCanvas.height = sideLength*scalar;
-                zoomImageCanvas.width = sideLength*scalar;
-                zoomImageCtx.drawImage(zoomHolderCanvas, 0, 0, zoomHolderCanvas.width*scalar, zoomHolderCanvas.height*scalar);
-                zoomImageCtx.strokeStyle = "#00FFFF";
-                zoomImageCtx.beginPath();
-                zoomImageCtx.moveTo(sideLength*scalar/2, 0);
-                zoomImageCtx.lineTo(sideLength*scalar/2, sideLength*scalar);
-                zoomImageCtx.closePath();
-                zoomImageCtx.stroke();
-                zoomImageCtx.beginPath();
-                zoomImageCtx.moveTo(0, sideLength*scalar/2);
-                zoomImageCtx.lineTo(sideLength*scalar, sideLength*scalar/2);
-                zoomImageCtx.closePath();
-                zoomImageCtx.stroke();
-            }
-
-            zoomStatusFlip = function () {
-                let zoomStatus = $("#zoomStatus");
-                if (zoomStatus.text() === "Off") {
-                    zoomState = true;
-                    zoomDialog.dialog("open");
-                    zoomStatus.text("On");
-                    zoomStatus.addClass("toggled");
-                } else {
-                    zoomState = false;
-                    zoomDialog.dialog("close");
-                    zoomStatus.text("Off");
-                    zoomStatus.removeClass("toggled");
-                }
-            }
-
-            $("#drawingBoard").mouseout(function () {
-                if (!globalIsDrawing) {
-                    ctx.putImageData(boardCurrentStateHolder, 0, 0);
-                }
-            })
-
-            $("#drawingBoard").bind('wheel', function (e) {
-                if (!(e.shiftKey)) {
-                    return;
-                }
-
-                if (pixelate) {
-                    if (e.originalEvent.wheelDelta/120>0) {
-                        toolScalar = toolScalar + 5;
-                    } else {
-                        toolScalar = toolScalar - 5;
-                    }
-
-                    if (toolScalar<1) {
-                        toolScalar = 1;
-                    }
-                } else {
-                    if (e.originalEvent.wheelDelta/120>0) {
-                        toolScalar = toolScalar + 0.1;
-                    } else {
-                        toolScalar = toolScalar - 0.1;
-                    }
-                }
-                let rounded = Math.round(toolScalar * 100) / 100
-                $("#toolScalarNumber").val(rounded);
-                $("#toolScalarRange").val(rounded);
-
-                $("#drawingBoard")[0].dispatchEvent(new Event('mousemove'));
-            })
-
-            $("#toolScalarRange").change(function (){
-                toolScalar= parseFloat($("#toolScalarRange").val());
-            })
-            $("#toolScalarNumber").change(function (){
-                toolScalar = parseFloat($("#toolScalarNumber").val());
-            })
-
-            undoState = function (undoStateContainer, redoStateContainer, ctx) {
-                if (undoStateContainer.length>1) {
-                    let state = undoStateContainer.pop();
-                    boardCurrentStateHolder = undoStateContainer[undoStateContainer.length-1]
-                    ctx.putImageData(boardCurrentStateHolder, 0, 0);
-                    redoStateContainer.push(state);
-                }
-            }
-
-            redoState = function (redoStateContainer, undoStateContainer, ctx) {
-                if (redoStateContainer.length > 0) {
-                    let state = redoStateContainer.pop();
-                    boardCurrentStateHolder = state;
-                    ctx.putImageData(boardCurrentStateHolder, 0, 0);
-                    undoStateContainer.push(state);
-                }
             }
 
         }
-    })
+        img.onerror = function () {
+            notAnImageDialog.dialog("open");
+            $("body").css('background-color', "grey");
+
+        }
+        img.src = _URL.createObjectURL(file);
+
+        downloadButton = function () {
+            loadingDialog.dialog("open");
+            setTimeout(()=>{
+                download();
+            }, 1)
+        }
+
+        download = function () {
+            let downloadImageData = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data;
+            let originalData = originalImageData.data;
+            let chunkSize = 250;
+            let chunkItems;
+            let payload = {
+                chunkSize: chunkSize,
+                chunkCount: 0,
+                items:[]
+            }
+            for (let i = 0; i<=originalData.length; i+=chunkSize) {
+                if (i+chunkSize>originalData.length) {
+                    chunkItems = originalData.length - i
+                } else {
+                    chunkItems = chunkSize;
+                }
+                for (let j = 0; j<chunkItems; j++) {
+                    if (originalData[i+j] !== downloadImageData[i+j]) {
+                        let intArray = new Uint8Array(originalData.slice(i, i+chunkSize));
+                        let packedArray = pack(intArray);
+                        payload.items.push(
+                            {
+                                chunkIndex: i,
+                                arrayString: packedArray
+                            }
+                        )
+                        break;
+                    }
+                }
+                // Loop Over all 100 items
+                // If difference in any pixel, copy the 100 chunk into metadata, then break out back into earlier loop. Do for all array items.
+            }
+            payload.chunkCount = payload.items.length;
+            let payloadString = JSON.stringify(payload);
+
+            let compressedPayload = LZString.compress(payloadString);
+
+            let CryptoJSCompatibleFormat = CryptoJS.enc.Utf16.parse(compressedPayload);
+            let passphrase = $("#key").val();
+            let payloadChunk = CryptoJS.AES.encrypt(CryptoJSCompatibleFormat, passphrase).toString();
+
+            canvas.toBlob(blob => {
+                let reader = new FileReader();
+                reader.onload = function () {
+                    let view = new Uint8Array(reader.result);
+                    let list = metadata.splitChunk(Uint8ToString(view));
+                    let iend = list.pop();
+                    let signature = metadata.createChunk("tEXt", "Version"+String.fromCharCode(0x00)+globalVersion);
+                    let payload = metadata.createChunk("tEXt", "Payload"+String.fromCharCode(0x00)+payloadChunk);
+                    let encryption = metadata.createChunk("tEXt", "Encrypted"+String.fromCharCode(0x00)+((passphrase.length!==0 ? "Yes": "No")))
+                    list.push(signature);
+                    list.push(encryption);
+                    list.push(payload);
+                    list.push(iend);
+                    let newPNG = metadata.joinChunk(list);
+                    let b = convertBinaryStringToUint8Array(newPNG);
+                    let blob = new Blob([b.buffer], {type: "image/png"});
+                    let filename = $("#filenameInput").val();
+                    saveAs(blob, filename);
+                    loadingDialog.dialog("close");
+                }
+                reader.readAsArrayBuffer(blob);
+            })
+        }
+
+        $("#drawingBoard").mousedown(function () {
+            boardCurrentStateHolder = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            globalIsDrawing = true;
+        })
+
+        $("body").mouseup(function () {
+            if (globalIsDrawing) {
+                undoStateContainer.push(boardCurrentStateHolder);
+                globalIsDrawing = false;
+            }
+        })
+
+        $("#drawingBoard").mousemove(function (e){
+
+            let offsetX, offsetY;
+
+            if (!globalIsDrawing) {
+                ctx.putImageData(boardCurrentStateHolder, 0, 0);
+            }
+
+            if (e.offsetX && e.offsetY) {
+                offsetX = e.offsetX;
+                offsetY = e.offsetY;
+                xOffset = offsetX;
+                yOffset = offsetY;
+            } else {
+                offsetX = xOffset;
+                offsetY = yOffset;
+            }
+
+            if (pixelate) {
+                let sideLength = parseInt(Math.sqrt(((ctx.canvas.height*ctx.canvas.width)*(0.0001*toolScalar))))
+                let x = (parseInt((offsetX*imageScalar)/sideLength)*sideLength);
+                let y = (parseInt((offsetY*imageScalar)/sideLength)*sideLength);
+                let rgba = [0, 0, 0, 0];
+                let data = ctx.getImageData(x, y, sideLength, sideLength).data;
+
+                for (let i = 0; i<data.length; i+=4){
+                    rgba[0] += data[i]
+                    rgba[1] += data[i+1]
+                    rgba[2] += data[i+2]
+                    rgba[3] += data[i+3]
+                }
+
+                let alpha = rgba[3];
+                rgba = rgba.map(i=>Math.floor(i/(sideLength**2)));
+                ctx.fillStyle = `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${(alpha)/255})`;
+                ctx.fillRect(x, y, sideLength, sideLength);
+            } else {
+
+                let x = (offsetX*imageScalar);
+                let y = (offsetY*imageScalar);
+                let iconWidth = toolCanvas.width;
+                let iconHeight = toolCanvas.height;
+                if (toolScalar === 0) {
+                    toolScalar = -0.1
+                }
+                ctx.drawImage(toolCanvas, x-((iconWidth*toolScalar)/2), y-((iconHeight*toolScalar)/2), iconWidth*toolScalar, iconHeight*toolScalar)
+            }
+
+            if (zoomState) {
+                let x = (offsetX*imageScalar);
+                let y = (offsetY*imageScalar)
+                let scalar = $("#zoomNumber").val();
+
+                zoomLens(ctx.getImageData(x-(300/scalar/2), y-(300/scalar/2), x+(300/scalar/2), y+(300/scalar/2)), 300/scalar, scalar);
+            }
+            if (globalIsDrawing) {
+                boardCurrentStateHolder = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            }
+
+        })
+
+        let zoomLens = function (canvasData, sideLength, scalar) {
+            zoomDialog.dialog("open");
+            let zoomHolderCanvas = $("#zoomContainer")[0];
+            let zoomHolderCtx = zoomHolderCanvas.getContext("2d");
+            zoomHolderCanvas.height = sideLength;
+            zoomHolderCanvas.width = sideLength;
+            zoomHolderCtx.putImageData(canvasData, 0, 0);
+
+
+            let zoomImageCanvas = $("#zoomImageContainer")[0];
+            let zoomImageCtx = zoomImageCanvas.getContext("2d");
+            zoomImageCanvas.height = sideLength*scalar;
+            zoomImageCanvas.width = sideLength*scalar;
+            zoomImageCtx.drawImage(zoomHolderCanvas, 0, 0, zoomHolderCanvas.width*scalar, zoomHolderCanvas.height*scalar);
+            zoomImageCtx.strokeStyle = "#00FFFF";
+            zoomImageCtx.beginPath();
+            zoomImageCtx.moveTo(sideLength*scalar/2, 0);
+            zoomImageCtx.lineTo(sideLength*scalar/2, sideLength*scalar);
+            zoomImageCtx.closePath();
+            zoomImageCtx.stroke();
+            zoomImageCtx.beginPath();
+            zoomImageCtx.moveTo(0, sideLength*scalar/2);
+            zoomImageCtx.lineTo(sideLength*scalar, sideLength*scalar/2);
+            zoomImageCtx.closePath();
+            zoomImageCtx.stroke();
+        }
+
+        zoomStatusFlip = function () {
+            let zoomStatus = $("#zoomStatus");
+            if (zoomStatus.text() === "Off") {
+                zoomState = true;
+                zoomDialog.dialog("open");
+                zoomStatus.text("On");
+                zoomStatus.addClass("toggled");
+            } else {
+                zoomState = false;
+                zoomDialog.dialog("close");
+                zoomStatus.text("Off");
+                zoomStatus.removeClass("toggled");
+            }
+        }
+
+        $("#drawingBoard").mouseout(function () {
+            if (!globalIsDrawing) {
+                ctx.putImageData(boardCurrentStateHolder, 0, 0);
+            }
+        })
+
+        $("#drawingBoard").bind('wheel', function (e) {
+            if (!(e.shiftKey)) {
+                return;
+            }
+
+            if (pixelate) {
+                if (e.originalEvent.wheelDelta/120>0) {
+                    toolScalar = toolScalar + 5;
+                } else {
+                    toolScalar = toolScalar - 5;
+                }
+
+                if (toolScalar<1) {
+                    toolScalar = 1;
+                }
+            } else {
+                if (e.originalEvent.wheelDelta/120>0) {
+                    toolScalar = toolScalar + 0.1;
+                } else {
+                    toolScalar = toolScalar - 0.1;
+                }
+            }
+            let rounded = Math.round(toolScalar * 100) / 100
+            $("#toolScalarNumber").val(rounded);
+            $("#toolScalarRange").val(rounded);
+
+            $("#drawingBoard")[0].dispatchEvent(new Event('mousemove'));
+        })
+
+        $("#toolScalarRange").change(function (){
+            toolScalar= parseFloat($("#toolScalarRange").val());
+        })
+        $("#toolScalarNumber").change(function (){
+            toolScalar = parseFloat($("#toolScalarNumber").val());
+        })
+
+        undoState = function (undoStateContainer, redoStateContainer, ctx) {
+            if (undoStateContainer.length>1) {
+                let state = undoStateContainer.pop();
+                boardCurrentStateHolder = undoStateContainer[undoStateContainer.length-1]
+                ctx.putImageData(boardCurrentStateHolder, 0, 0);
+                redoStateContainer.push(state);
+            }
+        }
+
+        redoState = function (redoStateContainer, undoStateContainer, ctx) {
+            if (redoStateContainer.length > 0) {
+                let state = redoStateContainer.pop();
+                boardCurrentStateHolder = state;
+                ctx.putImageData(boardCurrentStateHolder, 0, 0);
+                undoStateContainer.push(state);
+            }
+        }
+
+    }
+
 </script>
 
 <script>
