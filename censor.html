@@ -90,7 +90,7 @@
                 <div class="scalarHolder d-flex flex-column align-items-center">
                     <div class="slideContainer d-flex">
                         <div class="rangeHolder d-flex flex-column justify-content-center">
-                            <input type="range" min="1" max="250" value="6" class="slider" id="toolScalarRange" oninput="toolScalarNumber.value = toolScalarRange.value">
+                            <input type="range" min="1" max="250" value="10" class="slider" id="toolScalarRange" oninput="toolScalarNumber.value = toolScalarRange.value">
                         </div>
                         <input type="number" id="toolScalarNumber" min="1" max="500" size="4" value="10" oninput="toolScalarRange.value = toolScalarNumber.value">
                     </div>
@@ -104,7 +104,7 @@
                             <span id="zoomStatus" onclick="zoomStatusFlip()">Off</span>
                         </div>
                         <div class="numberHolder">
-                            <input type="number" id="zoomNumber" min="1" max="10" size="2" value="3">
+                            <input type="number" id="zoomNumber" min="1" max="10" size="2" value="2">
                         </div>
                     </div>
                 </div>
@@ -436,7 +436,7 @@
                         chunkItems = chunkSize;
                     }
                     for (let j = 0; j<chunkItems; j++) {
-                        if (originalData[i+j] != downloadImageData[i+j]) {
+                        if (originalData[i+j] !== downloadImageData[i+j]) {
                             let intArray = new Uint8Array(originalData.slice(i, i+chunkSize));
                             let packedArray = pack(intArray);
                             payload.items.push(
@@ -567,11 +567,23 @@
                 zoomHolderCanvas.width = sideLength;
                 zoomHolderCtx.putImageData(canvasData, 0, 0);
 
+
                 let zoomImageCanvas = $("#zoomImageContainer")[0];
                 let zoomImageCtx = zoomImageCanvas.getContext("2d");
                 zoomImageCanvas.height = sideLength*scalar;
                 zoomImageCanvas.width = sideLength*scalar;
                 zoomImageCtx.drawImage(zoomHolderCanvas, 0, 0, zoomHolderCanvas.width*scalar, zoomHolderCanvas.height*scalar);
+                zoomImageCtx.strokeStyle = "#00FFFF";
+                zoomImageCtx.beginPath();
+                zoomImageCtx.moveTo(sideLength*scalar/2, 0);
+                zoomImageCtx.lineTo(sideLength*scalar/2, sideLength*scalar);
+                zoomImageCtx.closePath();
+                zoomImageCtx.stroke();
+                zoomImageCtx.beginPath();
+                zoomImageCtx.moveTo(0, sideLength*scalar/2);
+                zoomImageCtx.lineTo(sideLength*scalar, sideLength*scalar/2);
+                zoomImageCtx.closePath();
+                zoomImageCtx.stroke();
             }
 
             zoomStatusFlip = function () {
@@ -686,7 +698,7 @@
 
     metadata.isPNG = function (s) {
         var sig = s.substr(0, 8);
-        return (sig == metadata.PNG_SIG);
+        return (sig === metadata.PNG_SIG);
     };
 
     metadata.splitChunk= function (s) {
@@ -696,7 +708,7 @@
         s = s.substr(8); // chomp sig
         var chunklist = [];
         // read chunk list
-        while (s != '') {
+        while (s !== '') {
             var chunk = {};
             // read chunk size
             var size = stoi(s.substr(0, 4));
