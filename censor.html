@@ -99,7 +99,7 @@
                 <p>
                     Pixelate by pressing or holding down your left mouse button.<br><br>
                     Scaling can be changed with Shift + Scrollwheel, or the slider/input below<br><br>
-                    You can undo and redo your changes by pressing the buttons below<br><br>
+                    You can undo and redo your changes by pressing the buttons below (Ctrl+Z and Ctrl+Y also work!)<br><br>
                     You can add a password to your hidden data, to secure it from prying eyes.<br><br>
                     And then, simply press download at the end!<br><br>
                     Note: All dialog boxes can be moved by holding the title.
@@ -341,7 +341,6 @@
         }
     });
 
-    toolboxDialog.dialog("open");
 
     imageContainsPayloadDialog.dialog({
         autoOpen: false,
@@ -755,6 +754,15 @@
         $("#drawingBoard").mouseout(function () {
             if (!globalIsDrawing) {
                 ctx.putImageData(boardCurrentStateHolder, 0, 0);
+            }
+        })
+
+
+        $("body").keydown(function (e) {
+            if (e.which === 90 && e.ctrlKey) {
+                $("#undoButton").click();
+            } else if (e.which === 89 && e.ctrlKey) {
+                $("#redoButton").click();
             }
         })
 
