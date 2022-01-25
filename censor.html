@@ -825,6 +825,7 @@
             img.onload = function () {
                 let normalize = parseInt($("#rotationSlider").val()) - 180;
                 let newSize = img.width > img.height ? img.width : img.height;
+                newSize = newSize * 1.5;
                 let toolCanvas = $("#customImageContainer")[0];
                 let toolCtx = toolCanvas.getContext("2d");
                 toolCanvas.height = newSize;
