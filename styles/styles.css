@@ -141,15 +141,19 @@ label {
     background-color: lightgray;
 }
 
-.scalarHolder {
+.scalarHolder, .rotationHolder {
     align-self: stretch;
 }
 
-.slideContainer {
+.slideContainer, .rotationContainer {
     align-self: stretch;
 }
 
-.rangeHolder {
+.rotationHolder {
+    padding-bottom: 10px;
+}
+
+.rangeHolder, .rotationSliderContainer {
     flex-grow: 1;
     margin-right: 5px;
 }

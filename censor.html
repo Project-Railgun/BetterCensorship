@@ -121,6 +121,15 @@
                     </div>
                 </div>
 
+                <div class="rotationHolder d-flex flex-column align-items-center">
+                    <div class="rotationContainer d-flex">
+                        <div class="rotationSliderContainer d-flex flex-column justify-content-center">
+                            <input id="rotationSlider" type="range" min="1" max="360" value="180">
+                        </div>
+                    </div>
+                    <label for="rotationSlider">Rotate the Tool</label>
+                </div>
+
                 <div class="addTextButton" onclick="setTextMode()">
                     <span id="addTextButton" class="addTextButtonSpan">Add Text</span>
                 </div>
@@ -215,6 +224,7 @@
 
     let display = $("#canvasContainer").css("display");
     $("#canvasContainer").css("display", "none");
+    $(".rotationHolder").attr('style', 'display: none !important');
 
     let fileInput = $("<input type=file>");
     let toolInput = $("<input type=file>")
@@ -363,6 +373,7 @@
         }
     });
 
+
     let setTextMode = function () {
         textModalDialog.dialog("open");
         textMode = true;
@@ -418,6 +429,7 @@
     let switchTool = function (toolIndex) {
         if (toolIndex === 0) {
             pixelate = true;
+            $(".rotationHolder").attr('style', 'display: none !important');
             toolScalar = 10;
             $(`#tool${activeTool}`).removeClass("activeTool");
             activeTool = toolIndex;
@@ -426,6 +438,7 @@
             $("#toolScalarRange").attr("min", "1");
             $("#toolScalarRange").attr("step", "1");
             return;
+
         }
 
         let img = new Image();
@@ -436,6 +449,8 @@
             toolCanvas.height = this.height;
             toolCanvas.width = this.width;
             toolCtx.drawImage(img, 0, 0);
+            $(".rotationHolder").css("display", "flex");
+            $("#rotationSlider").val(180);
             pixelate = false;
             $(`#tool${activeTool}`).removeClass("activeTool");
             activeTool = toolIndex;
@@ -801,6 +816,30 @@
         $("#toolScalarNumber").change(function (){
             toolScalar = parseFloat($("#toolScalarNumber").val());
         })
+
+        $("#rotationSlider").change(function () {
+
+
+            let img = new Image();
+
+            img.onload = function () {
+                let normalize = parseInt($("#rotationSlider").val()) - 180;
+                let newSize = img.width > img.height ? img.width : img.height;
+                let toolCanvas = $("#customImageContainer")[0];
+                let toolCtx = toolCanvas.getContext("2d");
+                toolCanvas.height = newSize;
+                toolCanvas.width = newSize;
+                toolCtx.clearRect(0, 0, toolCanvas.width, toolCanvas.height);
+                toolCtx.save();
+                toolCtx.translate(toolCanvas.width/2, toolCanvas.height/2);
+                toolCtx.rotate(normalize*Math.PI/180);
+                toolCtx.drawImage(img, -img.width/2, -img.height/2);
+                toolCtx.restore();
+            }
+
+            img.src = toolbox[activeTool].src
+        })
+
 
         undoState = function (undoStateContainer, redoStateContainer, ctx) {
             if (undoStateContainer.length>1) {
