@@ -35,8 +35,9 @@
     <div class="versionRight">
         <div class="versionContainer">
             <span id="versionString">BetterCensorship vX.X.X</span><br>
-            <span><a href="https://www.patreon.com/BetterRepack">Patreon</a> / <a
-                    href="https://subscribestar.adult/betterrepack">SubscribeStar</a>
+            <span><a href="https://www.patreon.com/BetterRepack">Patreon</a> /
+                <a href="https://subscribestar.adult/betterrepack">SubscribeStar</a> /
+                <a href="https://twitter.com/ProjRailgun">Twitter</a>
             </span>
         </div>
     </div>
@@ -100,6 +101,7 @@
                     Pixelate by pressing or holding down your left mouse button.<br><br>
                     Scaling can be changed with Shift + Scrollwheel, or the slider/input below<br><br>
                     You can undo and redo your changes by pressing the buttons below (Ctrl+Z and Ctrl+Y also work!)<br><br>
+                    You can also rotate the censor "tool" by using Ctrl+Scrollwheel, or the slider<br><br>
                     You can add a password to your hidden data, to secure it from prying eyes.<br><br>
                     And then, simply press download at the end!<br><br>
                     Note: All dialog boxes can be moved by holding the title.
@@ -116,6 +118,8 @@
                         <ul class="d-flex align-items-center">
                             <li class="activeTool" id="tool0" onclick="switchTool(0)"><img src="assets/pixelate.png" alt="Pxl" title="Pixelate"></li>
                             <li class="" id="tool1" onclick="switchTool(1)"><img src="assets/nipcensor.png" alt="smile" title="Smiley Face"></li>
+                            <li class="" id="tool2" onclick="switchTool(2)"><img src="assets/EforEcchi.png" alt="H" title="E for Ecchi"></li>
+                            <li class="" id="tool3" onclick="switchTool(3)"><img src="assets/BRko.png" alt="BRKo" title="BR-Ko"></li>
                             <li id="addTool" onclick="addTool()"><img id="addToolButton" src="assets/plus.svg" alt="add" title="Add more images!"></li>
                         </ul>
                     </div>
@@ -220,6 +224,16 @@
     toolbox.push({
         name: "Smiley Face",
         src: "assets/nipcensor.png"
+    })
+
+    toolbox.push({
+        name: "E for Ecchi",
+        src: "assets/EforEcchi.png"
+    })
+
+    toolbox.push({
+        name: "BR-ko",
+        src: "assets/BRKo.png"
     })
 
     let display = $("#canvasContainer").css("display");
@@ -774,40 +788,53 @@
 
 
         $("body").keydown(function (e) {
+
+            //Undo/Redo
             if (e.which === 90 && e.ctrlKey) {
                 $("#undoButton").click();
-            } else if (e.which === 89 && e.ctrlKey) {
+            }
+            if (e.which === 89 && e.ctrlKey) {
                 $("#redoButton").click();
             }
+
         })
 
         $("#drawingBoard").bind('wheel', function (e) {
-            if (!(e.shiftKey)) {
-                return;
+            if (e.shiftKey) {
+                if (pixelate) {
+                    if (e.originalEvent.wheelDelta/120>0) {
+                        toolScalar = toolScalar + 5;
+                    } else {
+                        toolScalar = toolScalar - 5;
+                    }
+
+                    if (toolScalar<1) {
+                        toolScalar = 1;
+                    }
+                } else {
+                    if (e.originalEvent.wheelDelta/120>0) {
+                        toolScalar = toolScalar + 0.1;
+                    } else {
+                        toolScalar = toolScalar - 0.1;
+                    }
+                }
+                let rounded = Math.round(toolScalar * 100) / 100
+                $("#toolScalarNumber").val(rounded);
+                $("#toolScalarRange").val(rounded);
+
+                $("#drawingBoard")[0].dispatchEvent(new Event('mousemove'));
+            } else if (e.ctrlKey) {
+                e.preventDefault();
+                let slider = $("#rotationSlider")
+                if (e.originalEvent.wheelDelta/120>0) {
+                    slider.val(parseInt(slider.val())+10)
+                } else {
+                    slider.val(parseInt(slider.val())-10)
+                }
+                rotateImage();
+                $("#drawingBoard")[0].dispatchEvent(new Event('mousemove'));
             }
 
-            if (pixelate) {
-                if (e.originalEvent.wheelDelta/120>0) {
-                    toolScalar = toolScalar + 5;
-                } else {
-                    toolScalar = toolScalar - 5;
-                }
-
-                if (toolScalar<1) {
-                    toolScalar = 1;
-                }
-            } else {
-                if (e.originalEvent.wheelDelta/120>0) {
-                    toolScalar = toolScalar + 0.1;
-                } else {
-                    toolScalar = toolScalar - 0.1;
-                }
-            }
-            let rounded = Math.round(toolScalar * 100) / 100
-            $("#toolScalarNumber").val(rounded);
-            $("#toolScalarRange").val(rounded);
-
-            $("#drawingBoard")[0].dispatchEvent(new Event('mousemove'));
         })
 
         $("#toolScalarRange").change(function (){
@@ -818,10 +845,11 @@
         })
 
         $("#rotationSlider").change(function () {
+            rotateImage();
+        })
 
-
+        let rotateImage = function () {
             let img = new Image();
-
             img.onload = function () {
                 let normalize = parseInt($("#rotationSlider").val()) - 180;
                 let newSize = img.width > img.height ? img.width : img.height;
@@ -839,8 +867,7 @@
             }
 
             img.src = toolbox[activeTool].src
-        })
-
+        }
 
         undoState = function (undoStateContainer, redoStateContainer, ctx) {
             if (undoStateContainer.length>1) {
