@@ -273,12 +273,14 @@
     }
 
     loadingDialog.dialog({
+        closeOnEscape: false,
         autoOpen: false,
         modal: true,
         dialogClass: "systemMessage no-close",
         minWidth: 250,
     })
     toolboxDialog.dialog({
+        closeOnEscape: false,
         autoOpen: false,
         modal: true,
         dialogClass: "toolboxDialog no-close",
@@ -291,6 +293,7 @@
     })
 
     textModalDialog.dialog({
+        closeOnEscape: false,
         autoOpen: false,
         modal: true,
         dialogClass: "textModalDialog no-close",
@@ -313,6 +316,7 @@
     })
 
     zoomDialog.dialog({
+        closeOnEscape: false,
         autoOpen: false,
         modal: true,
         dialogClass: "zoomDialog no-close",
@@ -788,6 +792,10 @@
 
 
         $("body").keydown(function (e) {
+            //Escape Key Escaper
+            // if (e.which === 27) {
+            //     e.preventDefault();
+            // }
 
             //Undo/Redo
             if (e.which === 90 && e.ctrlKey) {
