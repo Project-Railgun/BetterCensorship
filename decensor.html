@@ -25,23 +25,7 @@
 </head>
 <body>
 <div class="pageContainer d-flex align-items-center justify-content-center">
-    <div class="navLeft">
-        <div class="navigationContainer ">
-            <a href="/index.html">Home</a> /
-            <a href="/censor.html">Censor</a> /
-            <a href="/decensor.html">Decensor</a> /
-            <a href="/faq.html">FAQ</a>
-        </div>
-    </div>
-    <div class="versionRight">
-        <div class="versionContainer">
-            <span id="versionString">BetterCensorship vX.X.X</span><br>
-            <span><a href="https://www.patreon.com/BetterRepack">Patreon</a> /
-                <a href="https://subscribestar.adult/betterrepack">SubscribeStar</a> /
-                <a href="https://twitter.com/ProjRailgun">Twitter</a>
-            </span>
-        </div>
-    </div>
+
     <div id="decensorUpload" class="d-flex flex-column align-items-center" onclick="loadPage()" ondrop="dropHandler(event)" ondragover="dragOverHandler(event)">
         <span class="icon-folder-upload"></span>
         <span class="uploadText">Open File</span>
@@ -61,6 +45,25 @@
             Decensor!
         </span>
     </div>
+    <footer>
+        <div class="navLeft">
+            <div class="navigationContainer ">
+                <a href="/index.html">Home</a> /
+                <a href="/censor.html">Censor</a> /
+                <a href="/decensor.html">Decensor</a> /
+                <a href="/faq.html">FAQ</a>
+            </div>
+        </div>
+        <div class="versionRight">
+            <div class="versionContainer">
+                <span id="versionString">BetterCensorship vX.X.X</span><br>
+                <span><a href="https://www.patreon.com/BetterRepack">Patreon</a> /
+                <a href="https://subscribestar.adult/betterrepack">SubscribeStar</a> /
+                <a href="https://twitter.com/ProjRailgun">Twitter</a>
+            </span>
+            </div>
+        </div>
+    </footer>
 </div>
 
 <div class="error" id="notAnImage" title="Error">File is not an Image. Press OK to reload the page</div>
@@ -71,7 +74,7 @@
 
 
 <script>
-    let globalVersion = "BetterCensorship v0.0.1"
+    let globalVersion = "BetterCensorship v1.0"
     $("#versionString").text(globalVersion);
 
     let _URL = window.URL || window.webkitURL;
