@@ -528,15 +528,33 @@
             $("#censorUpload").attr('style', 'display: none !important');
             canvas.height = this.height;
             canvas.width = this.width;
-            if (this.height > (document.documentElement.clientHeight/1.1)) {
-                imageScalar = this.height/(document.documentElement.clientHeight/1.1);
-                $("#drawingBoard").css("height", `${this.height/imageScalar}px`)
-                $("#drawingBoard").css("width", `${this.width/imageScalar}px`)
-            } else if (this.width > (document.documentElement.clientWidth/1.1)) {
-                imageScalar = this.width/(document.documentElement.clientWidth/1.1);
-                $("#drawingBoard").css("height", `${this.height/imageScalar}px`)
-                $("#drawingBoard").css("width", `${this.width/imageScalar}px`)
+
+            console.log(this.height/document.documentElement.clientHeight)
+            console.log(this.width/document.documentElement.clientWidth);
+
+            if ((this.height/document.documentElement.clientHeight) > (this.width/document.documentElement.clientWidth)) {
+                if (this.height > (document.documentElement.clientHeight/1.15)) {
+                    imageScalar = this.height/(document.documentElement.clientHeight/1.15);
+                    $("#drawingBoard").css("height", `${this.height/imageScalar}px`)
+                    $("#drawingBoard").css("width", `${this.width/imageScalar}px`)
+                } else if (this.width > (document.documentElement.clientWidth/1.29)) {
+                    imageScalar = this.width/(document.documentElement.clientWidth/1.29);
+                    $("#drawingBoard").css("height", `${this.height/imageScalar}px`)
+                    $("#drawingBoard").css("width", `${this.width/imageScalar}px`)
+                }
+            } else if ((this.height/document.documentElement.clientHeight) < (this.width/document.documentElement.clientWidth)) {
+                if (this.width > (document.documentElement.clientWidth/1.29)) {
+                    imageScalar = this.width/(document.documentElement.clientWidth/1.29);
+                    $("#drawingBoard").css("height", `${this.height/imageScalar}px`)
+                    $("#drawingBoard").css("width", `${this.width/imageScalar}px`)
+                } else if (this.height > (document.documentElement.clientHeight/1.15)) {
+                    imageScalar = this.height/(document.documentElement.clientHeight/1.15);
+                    $("#drawingBoard").css("height", `${this.height/imageScalar}px`)
+                    $("#drawingBoard").css("width", `${this.width/imageScalar}px`)
+                }
             }
+
+
             ctx.drawImage(img, 0, 0);
             originalImageData = ctx.getImageData(0, 0, this.width, this.height);
             undoStateContainer.push(originalImageData);

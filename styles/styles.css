@@ -388,5 +388,5 @@ footer * {
 
 body {
     height: 100%;
-    overflow: hidden;
+    overflow-y: hidden;
 }
