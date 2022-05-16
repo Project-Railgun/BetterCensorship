@@ -52,7 +52,7 @@
       "Zoom:",
       "Off",
       "On",
-      "Add a password:\xa0",
+      "Add a password:\u00a0",
       "(Empty field valid option)",
       "Filename:",
       "Undo",
@@ -85,7 +85,7 @@
     "lineset": [
       "Open File",
       "(For Decensoring)",
-      "Password:\xa0",
+      "Password:\u00a0",
       "(Leave empty if none)",
       "Decensor!",
       "Error",
