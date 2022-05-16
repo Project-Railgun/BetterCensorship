@@ -1,4 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Crete+Round&family=Dosis:wght@300;400;500&display=swap');
+@font-face {
+    font-family: NotoColorEmojiLimited;
+    unicode-range: U+1F1E6-1F1FF;
+    src: url(https://raw.githack.com/googlefonts/noto-emoji/main/fonts/NotoColorEmoji.ttf);
+}
 
 html {
     height: 100%;
@@ -196,6 +201,29 @@ label {
     right: 0;
     padding-left: 10px;
 }
+.langRight {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.5em;
+}
+
+
+
+.languageSelector {
+    font-family: 'NotoColorEmojiLimited', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol';
+}
+.languageList {
+    display: none;
+}
+
+/*.languageSelector span:hover + .languageList {*/
+/*    display: block;*/
+/*}*/
+
+
 h3 {
     font-family: 'Crete Round', serif;
 }

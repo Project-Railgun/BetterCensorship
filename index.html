@@ -21,7 +21,14 @@
 </head>
 <body>
 <div class="pageContainer">
+    <div class="langRight">
+        <div class="languageSelector">
+            <span onclick="dropDownFlipper()"></span>
+            <div class="languageList">
 
+            </div>
+        </div>
+    </div>
     <div class="contentContainer">
         <div class="flexContainer d-flex flex-column justify-content-between align-items-center">
             <div class="navContainer d-flex">
@@ -78,6 +85,96 @@
 <script>
     let globalVersion = "BetterCensorship v1.0"
     $("#versionString").text(globalVersion);
+
+    //This is code for the language selector
+
+    let configDump, linesetDump;
+
+    function getCountryFlag(cc) {
+        // Mild sanity check.
+        if (cc.length !== 2)
+            return cc;
+
+        // Convert char to Regional Indicator Symbol Letter
+        function risl(chr) {
+            return String.fromCodePoint(0x1F1E6 - 65 + chr.toUpperCase().charCodeAt(0));
+        }
+
+        // Create RISL sequence from country code.
+        return risl(cc[0]) + risl(cc[1]);
+    }
+
+    function dropDownFlipper() {
+        let display = $(".languageList").css("display");
+
+        if (display === "none") {
+            display = "block"
+        } else {
+            display = "none";
+        }
+        $(".languageList").css("display", display);
+
+    }
+
+    function languageSetter(language) {
+        localStorage.setItem("lang", language)
+        location.reload();
+    }
+
+
+    $.getJSON("languages/config.json")
+        .done(langConfigArray=>{
+            let language;
+            configDump = langConfigArray;
+            let setLang = localStorage.getItem("lang");
+            if (setLang) {
+
+                language = setLang
+            } else {
+
+                language = "English"
+            }
+            configDump.forEach((item)=>{
+                if (item["name"] === language) {
+                    $(".languageSelector span").text(getCountryFlag(item["country-code"]))
+                    $.getJSON(`languages/${item["filename"]}`)
+                        .done(lang=>{
+                            linesetDump = lang[0]["lineset"];
+
+
+                            $(".title").text(linesetDump[0]);
+                            $(".censorText").text(linesetDump[1]);
+                            $(".decensorText").text(linesetDump[2]);
+                            $(".content span:nth-child(1)").text(linesetDump[3]);
+                            $(".content span:nth-child(2)").text(linesetDump[4]);
+                            $(".content span:nth-child(3)").text(linesetDump[5]);
+                            $(".content span:nth-child(4)").text(linesetDump[6]);
+                            $(".content span:nth-child(5)").text(linesetDump[7]);
+                            $(".navigationContainer a:nth-child(1)").text(linesetDump[8]);
+                            $(".navigationContainer a:nth-child(2)").text(linesetDump[9]);
+                            $(".navigationContainer a:nth-child(3)").text(linesetDump[10]);
+                            $(".navigationContainer a:nth-child(4)").text(linesetDump[11]);
+                            $(".versionContainer a:nth-child(1)").text(linesetDump[12]);
+                            $(".versionContainer a:nth-child(2)").text(linesetDump[13]);
+                            $(".versionContainer a:nth-child(3)").text(linesetDump[14]);
+
+                        })
+                }
+                $(".languageSelector .languageList").append(
+                    `
+                <div class="lang-item" onclick="languageSetter('${item["name"]}')">
+                    ${getCountryFlag(item["country-code"])}
+                </div>
+                `
+                )
+            })
+
+
+
+        })
+
+    //This is the end of the code for the language selector
+
 </script>
 </body>
 </html>

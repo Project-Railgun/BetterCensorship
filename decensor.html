@@ -25,6 +25,14 @@
 </head>
 <body>
 <div class="pageContainer d-flex align-items-center justify-content-center">
+    <div class="langRight">
+        <div class="languageSelector">
+            <span onclick="dropDownFlipper()"></span>
+            <div class="languageList">
+
+            </div>
+        </div>
+    </div>
 
     <div id="decensorUpload" class="d-flex flex-column align-items-center" onclick="loadPage()" ondrop="dropHandler(event)" ondragover="dragOverHandler(event)">
         <span class="icon-folder-upload"></span>
@@ -35,7 +43,7 @@
         <canvas id="drawingBoard"></canvas>
 
         <div class="keyContainer">
-            <label for="key">Password:&nbsp</label>
+            <label id="keyText" for="key">Password:&nbsp</label>
             <input type="text" id="key" name="key">
         </div>
         <span id="keyHelpText">
@@ -71,6 +79,113 @@
 <div class="error" id="passwordIncorrect" title="Error">Password Incorrect. Press OK to reload the page</div>
 <div class="error" id="dataPayloadCorrupted" title="Error">Data Payload Corrupted. Payload may be password protected. Press OK to reload the page</div>
 <div class="status" id="loading" title="Loading">Please wait while the image processes. Processing time depends upon image size and edited content</div>
+
+<script>
+    // Language Selector Code
+    let configDump, linesetDump;
+
+    function getCountryFlag(cc) {
+        // Mild sanity check.
+        if (cc.length !== 2)
+            return cc;
+
+        // Convert char to Regional Indicator Symbol Letter
+        function risl(chr) {
+            return String.fromCodePoint(0x1F1E6 - 65 + chr.toUpperCase().charCodeAt(0));
+        }
+
+        // Create RISL sequence from country code.
+        return risl(cc[0]) + risl(cc[1]);
+    }
+
+    function dropDownFlipper() {
+        let display = $(".languageList").css("display");
+
+        if (display === "none") {
+            display = "block"
+        } else {
+            display = "none";
+        }
+        $(".languageList").css("display", display);
+
+    }
+
+    function languageSetter(language) {
+        localStorage.setItem("lang", language)
+        location.reload();
+    }
+
+
+    $.getJSON("languages/config.json")
+        .done(langConfigArray=>{
+            let language;
+            configDump = langConfigArray;
+            let setLang = localStorage.getItem("lang");
+            if (setLang) {
+
+                language = setLang
+            } else {
+
+                language = "English"
+            }
+            configDump.forEach((item)=>{
+                if (item["name"] === language) {
+                    $(".languageSelector span").text(getCountryFlag(item["country-code"]))
+                    $.getJSON(`languages/${item["filename"]}`)
+                        .done(lang=>{
+                            linesetDump = lang[2]["lineset"];
+
+
+                            $(".uploadText").text(linesetDump[0]);
+                            $(".fileDistinction").text(linesetDump[1]);
+                            $("#keyText").text(linesetDump[2]);
+                            $("#keyHelpText").text(linesetDump[3]);
+                            $("#decensorButton").text(linesetDump[4]);
+                            $("[aria-describedby='notAnImage'] .ui-dialog-title").text(linesetDump[5]);
+                            $("[aria-describedby='notBetterCensorshipImage'] .ui-dialog-title").text(linesetDump[5]);
+                            $("[aria-describedby='passwordIncorrect'] .ui-dialog-title").text(linesetDump[5]);
+                            $("[aria-describedby='dataPayloadCorrupted'] .ui-dialog-title").text(linesetDump[5]);
+                            $("[aria-describedby='loading'] .ui-dialog-title").text(linesetDump[6]);
+
+                            $("#notAnImage").text(linesetDump[7]);
+                            $("#notBetterCensorshipImage").text(linesetDump[8]);
+                            $("#passwordIncorrect").text(linesetDump[9]);
+                            $("#dataPayloadCorrupted").text(linesetDump[10]);
+                            $("#loading").text(linesetDump[11]);
+
+
+                            $("[aria-describedby='notAnImage'] .ui-button").text(linesetDump[13]);
+                            $("[aria-describedby='notBetterCensorshipImage'] .ui-button").text(linesetDump[13]);
+                            $("[aria-describedby='resTooLarge'] .ui-button").text(linesetDump[13]);
+                            $("[aria-describedby='imageContainsPayload'] .ui-button").text(linesetDump[13]);
+
+                            // //$("").text(linesetDump[]);
+                            $(".navigationContainer a:nth-child(1)").text(linesetDump[14]);
+                            $(".navigationContainer a:nth-child(2)").text(linesetDump[15]);
+                            $(".navigationContainer a:nth-child(3)").text(linesetDump[16]);
+                            $(".navigationContainer a:nth-child(4)").text(linesetDump[17]);
+                            $(".versionContainer a:nth-child(1)").text(linesetDump[18]);
+                            $(".versionContainer a:nth-child(2)").text(linesetDump[19]);
+                            $(".versionContainer a:nth-child(3)").text(linesetDump[20]);
+
+                        })
+                }
+                $(".languageSelector .languageList").append(
+                    `
+                <div class="lang-item" onclick="languageSetter('${item["name"]}')">
+                    ${getCountryFlag(item["country-code"])}
+                </div>
+                `
+                )
+            })
+
+
+
+        })
+
+    //End of Language Selector Code
+
+</script>
 
 
 <script>
@@ -189,7 +304,7 @@
                         version = list.pop();
                         //Might error at the strict type check
                         if ((version.data.split("Version\u0000").join("")).split(" ")[0] !== "BetterCensorship") {
-                            throw new Error("Version Mismatch");
+                            throw new Error(linesetDump[12]);
                         }
                         try {
                             let key = $("#key").val();
@@ -207,7 +322,7 @@
                                 })
                                 ctx.putImageData(canvasData, 0, 0)
                                 loadingDialog.dialog("close");
-                                $("#decensorButton").text("Download!").click(function (){
+                                $("#decensorButton").text(linesetDump[21]).click(function (){
 
                                     let link = document.createElement('a');
                                     link.download = filename.split(".")[0] + '_decensored.png';

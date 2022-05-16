@@ -1,0 +1,12 @@
+[
+  {
+    "name": "English",
+    "country-code": "GB",
+    "filename": "english.json"
+  },
+  {
+    "name": "Test template",
+    "country-code": "US",
+    "filename": "test.json"
+  }
+]

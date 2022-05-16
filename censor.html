@@ -24,6 +24,14 @@
 </head>
 <body style="height: 100%; overflow-y: hidden">
 <div class="pageContainer d-flex align-items-center justify-content-center">
+    <div class="langRight">
+        <div class="languageSelector">
+            <span onclick="dropDownFlipper()"></span>
+            <div class="languageList">
+
+            </div>
+        </div>
+    </div>
     <div id="censorUpload" class="d-flex flex-column align-items-center" onclick="loadPage()" ondrop="dropHandler(event)" ondragover="dragOverHandler(event)">
         <span class="icon-folder-upload"></span>
         <span class="uploadText">Open File<br></span>
@@ -50,29 +58,29 @@
             <div class="textModalContent d-flex flex-column align-items-center">
 <!--                Size, color of fill, color of stroke, family and the text-->
                 <div class="textSize d-flex flex-row align-items-center">
-                    <label for="textSizeInput">Font Size (in px):&nbsp;</label>
+                    <label id="textMod1" for="textSizeInput">Font Size (in px):&nbsp;</label>
                     <input type="number" id="textSizeInput" size="5" value="5">
                 </div>
                 <div class="textFillColor d-flex flex-row align-items-center">
-                    <label for="textFillColorInput">Text Color:&nbsp;</label>
+                    <label id="textMod2" for="textFillColorInput">Text Color:&nbsp;</label>
                     <input type="color" id="textFillColorInput" value="#FFFFFF">
                 </div>
                 <div class="textStrokeColor d-flex flex-row align-items-center">
-                    <label for="textStrokeColorInput">Outline Color:&nbsp;</label>
+                    <label id="textMod3" for="textStrokeColorInput">Outline Color:&nbsp;</label>
                     <input type="color" id="textStrokeColorInput" value="#000000">
                 </div>
                 <div class="textFontFamily d-flex flex-row align-items-center">
-                    <label for="textFontFamilyInput">Font Family:&nbsp;</label>
+                    <label id="textMod4" for="textFontFamilyInput">Font Family:&nbsp;</label>
                     <select id="textFontFamilyInput">
-                        <option value="serif">Serif</option>
-                        <option value="sans-serif">Sans-serif</option>
-                        <option value="monospace">Monospace</option>
-                        <option value="cursive">Cursive</option>
-                        <option value="fantasy">Fantasy</option>
+                        <option id="textStyle1" value="serif">Serif</option>
+                        <option id="textStyle2" value="sans-serif">Sans-serif</option>
+                        <option id="textStyle3" value="monospace">Monospace</option>
+                        <option id="textStyle4" value="cursive">Cursive</option>
+                        <option id="textStyle5" value="fantasy">Fantasy</option>
                     </select>
                 </div>
                 <div class="textData d-flex flex-row align-items-center">
-                    <label for="textDataInput">Text:&nbsp;</label>
+                    <label id="textMod5" for="textDataInput">Text:&nbsp;</label>
                     <input type="text" id="textDataInput" value="Try hovering over the image!">
                 </div>
             </div>
@@ -114,7 +122,7 @@
                             <input id="rotationSlider" type="range" min="1" max="360" value="180">
                         </div>
                     </div>
-                    <label for="rotationSlider">Rotate the Tool</label>
+                    <label id="toolRotateText" for="rotationSlider">Rotate the Tool</label>
                 </div>
 
                 <div class="addTextButton" onclick="setTextMode()">
@@ -128,7 +136,7 @@
                         </div>
                         <input type="number" id="toolScalarNumber" min="1" max="500" size="4" value="10" oninput="toolScalarRange.value = toolScalarNumber.value">
                     </div>
-                    <label for="toolScalarRange">Scale the tool!</label>
+                    <label id="toolScaleText" for="toolScalarRange">Scale the tool!</label>
                 </div>
 
                 <div class="zoomHandler">
@@ -144,7 +152,7 @@
                 </div>
 
                 <div class="keyContainer d-flex flex-column align-items-center">
-                    <label for="key">Add a password:&nbsp</label>
+                    <label id="keyText" for="key">Add a password:&nbsp</label>
                     <input type="text" id="key" name="key">
                     <span id="keyHelpText">
                     (Empty field valid option)
@@ -152,7 +160,7 @@
                 </div>
 
                 <div class="filenameModifyField d-flex">
-                    <label for="filenameInput">Filename:&nbsp; </label>
+                    <label id="filenameInputLabel" for="filenameInput">Filename:&nbsp; </label>
                     <input type="text" id="filenameInput" name="filenameInput">
                 </div>
 
@@ -203,6 +211,142 @@
 <div class="error" id="fileTooBig" title="Error">File is too big to be processed properly (50MB Limit). Press OK to reload the page</div>
 <div class="status" id="loading" title="Loading">Please wait while the image processes. Processing time depends upon image size and edited content</div>
 
+
+<script>
+    // Language Selector Code
+    let configDump, linesetDump;
+
+    function getCountryFlag(cc) {
+        // Mild sanity check.
+        if (cc.length !== 2)
+            return cc;
+
+        // Convert char to Regional Indicator Symbol Letter
+        function risl(chr) {
+            return String.fromCodePoint(0x1F1E6 - 65 + chr.toUpperCase().charCodeAt(0));
+        }
+
+        // Create RISL sequence from country code.
+        return risl(cc[0]) + risl(cc[1]);
+    }
+
+    function dropDownFlipper() {
+        let display = $(".languageList").css("display");
+        if (display === "none") {
+            display = "block"
+        } else {
+            display = "none";
+        }
+        $(".languageList").css("display", display);
+
+    }
+
+    function languageSetter(language) {
+        localStorage.setItem("lang", language)
+        location.reload();
+    }
+
+
+    $.getJSON("languages/config.json")
+        .done(langConfigArray=>{
+            let language;
+            configDump = langConfigArray;
+            let setLang = localStorage.getItem("lang");
+            if (setLang) {
+                language = setLang
+            } else {
+                language = "English"
+            }
+            configDump.forEach((item)=>{
+                if (item["name"] === language) {
+                    $(".languageSelector span").text(getCountryFlag(item["country-code"]))
+                    $.getJSON(`languages/${item["filename"]}`)
+                        .done(lang=>{
+                            linesetDump = lang[1]["lineset"];
+
+                            $(".uploadText").text(linesetDump[0]);
+                            $(".fileDistinction").text(linesetDump[1]);
+                            $("#textMod1").text(linesetDump[2]);
+                            $("#textMod2").text(linesetDump[3]);
+                            $("#textMod3").text(linesetDump[4]);
+                            $("#textMod4").text(linesetDump[5]);
+                            $("#textStyle1").text(linesetDump[6]);
+                            $("#textStyle2").text(linesetDump[7]);
+                            $("#textStyle3").text(linesetDump[8]);
+                            $("#textStyle4").text(linesetDump[9]);
+                            $("#textStyle5").text(linesetDump[10]);
+                            $("#textMod5").text(linesetDump[11]);
+                            $("#textDataInput").val(linesetDump[12]);
+                            $(".zoomDialog .ui-dialog-title").text(linesetDump[13]);
+                            $(".helpDialog .ui-dialog-title").text(linesetDump[14]);
+                            $(".wall-of-text p").replaceWith(`
+                                <p>
+                                ${linesetDump[15]}<br><br>
+                                ${linesetDump[16]}<br><br>
+                                ${linesetDump[17]}<br><br>
+                                ${linesetDump[18]}<br><br>
+                                ${linesetDump[19]}<br><br>
+                                ${linesetDump[20]}<br><br>
+                                ${linesetDump[21]}
+                                </p>
+                            `)
+                            $(".toolboxDialog .ui-dialog-title").text(linesetDump[22]);
+                            $("#addToolButton").prop("title", linesetDump[23]);
+                            $("#toolRotateText").text(linesetDump[24]);
+                            $("#addTextButton").text(linesetDump[25]);
+                            $("#toolScaleText").text(linesetDump[26]);
+                            $(".zoomTitle").text(linesetDump[27]);
+                            $("#zoomStatus").text(linesetDump[28]); //29 is the alternate of this
+                            $("#keyText").text(linesetDump[30]);
+                            $("#keyHelpText").text(linesetDump[31]);
+                            $("#filenameInputLabel").text(linesetDump[32]);
+                            $("#undoButton").text(linesetDump[33]);
+                            $("#redoButton").text(linesetDump[34]);
+                            $("#downloadButton").text(linesetDump[35]);
+                            $("[aria-describedby='fileTooBig'] .ui-dialog-title").text(linesetDump[36]);
+                            $("[aria-describedby='notAnImage'] .ui-dialog-title").text(linesetDump[36]);
+                            $("[aria-describedby='resTooLarge'] .ui-dialog-title").text(linesetDump[37]);
+                            $("[aria-describedby='imageContainsPayload'] .ui-dialog-title").text(linesetDump[37]);
+                            $("[aria-describedby='loading'] .ui-dialog-title").text(linesetDump[38]);
+                            $("#notAnImage").text(linesetDump[39]);
+                            $("#resTooLarge").text(linesetDump[40]);
+                            $("#imageContainsPayload").text(linesetDump[41]);
+                            $("#fileTooBig").text(linesetDump[42]);
+                            $("#loading").text(linesetDump[43]);
+                            $("[aria-describedby='fileTooBig'] .ui-button").text(linesetDump[45]);
+                            $("[aria-describedby='notAnImage'] .ui-button").text(linesetDump[45]);
+                            $("[aria-describedby='resTooLarge'] .ui-button").text(linesetDump[44]);
+                            $("[aria-describedby='imageContainsPayload'] .ui-button").text(linesetDump[44]);
+                            $(".helpDialog .ui-button").text(linesetDump[44]);
+                            $("[aria-describedby='textModal'] .ui-button").text(linesetDump[46]);
+                            $("[aria-describedby='textModal'] .ui-dialog-title").text(linesetDump[25]);
+                            //$("").text(linesetDump[]);
+                            $(".navigationContainer a:nth-child(1)").text(linesetDump[49]);
+                            $(".navigationContainer a:nth-child(2)").text(linesetDump[50]);
+                            $(".navigationContainer a:nth-child(3)").text(linesetDump[51]);
+                            $(".navigationContainer a:nth-child(4)").text(linesetDump[52]);
+                            $(".versionContainer a:nth-child(1)").text(linesetDump[53]);
+                            $(".versionContainer a:nth-child(2)").text(linesetDump[54]);
+                            $(".versionContainer a:nth-child(3)").text(linesetDump[55]);
+
+                        })
+                }
+                $(".languageSelector .languageList").append(
+                    `
+                <div class="lang-item" onclick="languageSetter('${item["name"]}')">
+                    ${getCountryFlag(item["country-code"])}
+                </div>
+                `
+                )
+            })
+
+
+
+        })
+
+//End of Language Selector Code
+
+</script>
 
 
 <script>
@@ -440,7 +584,7 @@
 
             }
             img.onerror = function () {
-                alert("File not an image");
+                alert(linesetDump[47]);
             }
             img.src = _URL.createObjectURL(file);
         }
@@ -482,7 +626,7 @@
         }
 
         img.onerror = function () {
-            alert("Something went wrong. Please submit a bug report along with any image files you were using.")
+            alert(linesetDump[48])
         }
 
         img.src = toolbox[toolIndex].src
@@ -520,6 +664,9 @@
         }
         let img = new Image();
 
+        //Hide the Language Select Option
+        $(".langRight").css("display", "none");
+
         canvas = $("#drawingBoard")[0];
         ctx = canvas.getContext("2d");
         img.onload = function () {
@@ -529,8 +676,6 @@
             canvas.height = this.height;
             canvas.width = this.width;
 
-            console.log(this.height/document.documentElement.clientHeight)
-            console.log(this.width/document.documentElement.clientWidth);
 
             if ((this.height/document.documentElement.clientHeight) > (this.width/document.documentElement.clientWidth)) {
                 if (this.height > (document.documentElement.clientHeight/1.15)) {
@@ -791,15 +936,15 @@
 
         zoomStatusFlip = function () {
             let zoomStatus = $("#zoomStatus");
-            if (zoomStatus.text() === "Off") {
+            if (zoomStatus.text() === linesetDump[28]) { //"zoomOff"
                 zoomState = true;
                 zoomDialog.dialog("open");
-                zoomStatus.text("On");
+                zoomStatus.text(linesetDump[29]); // "zoomOn"
                 zoomStatus.addClass("toggled");
             } else {
                 zoomState = false;
                 zoomDialog.dialog("close");
-                zoomStatus.text("Off");
+                zoomStatus.text(linesetDump[28]); // "zoomOff"
                 zoomStatus.removeClass("toggled");
             }
         }
