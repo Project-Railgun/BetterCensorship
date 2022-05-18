@@ -1,6 +1,6 @@
 [
   {
-    "page_affected": "索引",
+    "page_affected": "index",
     "lineset": [
       "BetterCensorship",
       "修正画像",
@@ -20,7 +20,7 @@
     ]
   },
   {
-    "page_affected": "修正",
+    "page_affected": "censor",
     "lineset": [
       "ファイルを開く",
       "（修正用）",
@@ -47,7 +47,7 @@
       "ツールボックス",
       "さらに画像を追加！",
       "ツールを回転させる",
-      "テキストを追加"。
+      "テキストを追加",
       "ツールの拡大縮小！",
       "Zoom:",
       "オフ",
@@ -81,7 +81,7 @@
     ]
   },
   {
-    "page_affected": "無修正",
+    "page_affected": "decensor",
     "lineset": [
       "ファイルを開く",
       "（無修正用）",
@@ -108,7 +108,7 @@
     ]
   },
   {
-    "page_affected": "よくある質問",
+    "page_affected": "faq",
     "lineset": [
       "よくある質問",
       "これは何ですか？",
