@@ -10,6 +10,16 @@
     "filename": "japanese.json"
   },
   {
+    "name": "简体中文",
+    "country-code": "CN",
+    "filename": "ChineseSimplified.json"
+  },
+  {
+    "name": "繁體中文",
+    "country-code": "TW",
+    "filename": "ChineseTraditional.json"
+  },
+  {
     "name": "Français",
     "country-code": "FR",
     "filename": "french.json"
