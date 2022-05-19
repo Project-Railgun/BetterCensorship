@@ -5,6 +5,11 @@
     "filename": "english.json"
   },
   {
+    "name": "日本語",
+    "country-code": "JP",
+    "filename": "japanese.json"
+  },
+  {
     "name": "Test template",
     "country-code": "US",
     "filename": "test.json"
