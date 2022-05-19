@@ -10,6 +10,16 @@
     "filename": "japanese.json"
   },
   {
+    "name": "Français",
+    "country-code": "FR",
+    "filename": "french.json"
+  },
+  {
+    "name": "Nederlands",
+    "country-code": "NL",
+    "filename": "dutch.json"
+  },
+  {
     "name": "Test template",
     "country-code": "US",
     "filename": "test.json"
