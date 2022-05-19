@@ -33,5 +33,10 @@
     "name": "Test template",
     "country-code": "US",
     "filename": "test.json"
+  },
+  {
+    "name": "Español",
+    "country-code": "MX",
+    "filename": "spanish.json"
   }
 ]
