@@ -145,6 +145,8 @@
                             .done(lang=>{
                                 linesetDump = lang[3]["lineset"];
 
+                                $(".FAQHeading").text(linesetDump[0])
+
                                 $(".faqItemHeading.faq1").text(linesetDump[1])
                                 $("p.faqItemDescription.faq1").replaceWith(`
                                     <p class="faqItemDescription faq1">
