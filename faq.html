@@ -87,7 +87,7 @@
         </footer>
     </div>
     <script>
-        let globalVersion = "BetterCensorship v1.0"
+        let globalVersion = "BetterCensorship v1.1"
         $("#versionString").text(globalVersion);
 
         //This is code for the language selector
@@ -144,6 +144,8 @@
                         $.getJSON(`languages/${item["filename"]}`)
                             .done(lang=>{
                                 linesetDump = lang[3]["lineset"];
+
+                                $(".FAQHeading").text(linesetDump[0])
 
                                 $(".faqItemHeading.faq1").text(linesetDump[1])
                                 $("p.faqItemDescription.faq1").replaceWith(`
