@@ -35,6 +35,11 @@
     "filename": "dutch.json"
   },
   {
+    "name": "German",
+    "country-code": "DE",
+    "filename": "german.json"
+  },
+  {
     "name": "Test template",
     "country-code": "US",
     "filename": "test.json"
