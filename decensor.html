@@ -112,7 +112,7 @@
 
     function languageSetter(language) {
         localStorage.setItem("lang", language)
-        location.reload();
+        location.href = location.href.split("?")[0];
     }
 
 
@@ -129,7 +129,7 @@
                 language = "English"
             }
             configDump.forEach((item)=>{
-                if (item["name"] === language) {
+                if (item["name"] === language || item["country-code"] === language) {
                     $(".languageSelector span").text(getCountryFlag(item["country-code"]))
                     $.getJSON(`languages/${item["filename"]}`)
                         .done(lang=>{
@@ -172,7 +172,7 @@
                 }
                 $(".languageSelector .languageList").append(
                     `
-                <div class="lang-item" onclick="languageSetter('${item["name"]}')">
+                <div class="lang-item" title="${item["country-code"]}" onclick="languageSetter('${item["name"]}')">
                     ${getCountryFlag(item["country-code"])}
                 </div>
                 `
@@ -182,6 +182,17 @@
 
 
         })
+
+    //Additional patch for url based language setting
+    try {
+        let langCode = window.location.search.substr(1).split("&")[0].split("=")[1]
+        if(langCode.length >= 2){
+            languageSetter(langCode)
+        }
+    } catch {
+        //Catch added to avoid undefined errors.
+    }
+    //End patch
 
     //End of Language Selector Code
 
