@@ -172,19 +172,21 @@
             })
 
 
+            //Additional patch for url based language setting
+            try {
+                let langCode = window.location.search.substr(1).split("&")[0].split("=")[1]
+                configDump.forEach((item)=>{
+                    if (item["country-code"] === langCode) {
+                        languageSetter(langCode)
+                    }
+                })
+            } catch {
+                //Catch added to avoid undefined errors.
+            }
+            //End patch
 
         })
 
-    //Additional patch for url based language setting
-    try {
-        let langCode = window.location.search.substr(1).split("&")[0].split("=")[1]
-        if(langCode.length >= 2){
-            languageSetter(langCode)
-        }
-    } catch {
-        //Catch added to avoid undefined errors.
-    }
-    //End patch
 
     //This is the end of the code for the language selector
 
